@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steve Wong | Computer Science & AI Portfolio</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: rgba(22, 27, 34, 0.75);
+            --card-border: rgba(48, 54, 61, 0.8);
+            --accent-primary: #58a6ff;
+            --accent-secondary: #bc8cff;
+            --accent-green: #3fb950;
+            --text-main: #c9d1d9;
+            --text-bold: #f0f6fc;
+            --text-muted: #8b949e;
+            --gradient-accent: linear-gradient(135deg, #58a6ff 0%, #bc8cff 100%);
+            --shadow-glow: 0 10px 30px -10px rgba(88, 166, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background Grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 15% 15%, rgba(88, 166, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 65%, rgba(188, 140, 255, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(12px);
+            background: rgba(13, 17, 23, 0.85);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-bold);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.8rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0 3rem;
+            text-align: left;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            padding: 0.4rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--text-bold);
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.tagline {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 750px;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .social-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.92;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(48, 54, 61, 0.6);
+            border-color: var(--text-muted);
+            color: var(--text-bold);
+            transform: translateY(-2px);
+        }
+
+        /* Section Title */
+        .section-header {
+            margin: 4rem 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-bold);
+            position: relative;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Grid Layout */
+        .grid-featured {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 1.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .grid-featured {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+        }
+
+        .grid-secondary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Project Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(88, 166, 255, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-featured-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient-accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .card-category {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent-primary);
+        }
+
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bold);
+            margin-bottom: 0.6rem;
+        }
+
+        .card-desc {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tag {
+            font-family: 'Fira Code', monospace;
+            background: rgba(110, 118, 129, 0.15);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid rgba(110, 118, 129, 0.2);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(48, 54, 61, 0.5);
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .card-link:hover {
+            color: #79c0ff;
+            text-decoration: underline;
+        }
+
+        /* Skills & Background Section */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .skill-box h3 {
+            font-size: 1.1rem;
+            color: var(--text-bold);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .skill-list {
+            list-style: none;
+        }
+
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed rgba(48, 54, 61, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .skill-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Contact & Footer */
+        .contact-card {
+            background: linear-gradient(180deg, rgba(22, 27, 34, 0.9) 0%, rgba(13, 17, 23, 0.95) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .contact-card h2 {
+            font-size: 2rem;
+            color: var(--text-bold);
+            margin-bottom: 0.8rem;
+        }
+
+        .contact-card p {
+            color: var(--text-muted);
+            max-width: 550px;
+            margin: 0 auto 2rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            border-top: 1px solid var(--card-border);
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">Steve <span>Wong</span></a>
+            <ul class="nav-links">
+                <li><a href="#featured">Featured</a></li>
+                <li><a href="#projects">Other Projects</a></li>
+                <li><a href="#skills">Skills & Education</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <div class="badge">
+                <i class="fa-solid fa-graduation-cap"></i> Incoming Computer Science @ UIUC
+            </div>
+            <h1>Hi, I'm <span>Steve Wong</span>.</h1>
+            <p class="tagline">
+                Passionate about Artificial Intelligence, Computer Vision, and Full-Stack Software Engineering. Experienced in building machine learning models, web applications, and published astrophysics & econometric research.
+            </p>
+            <div class="social-bar">
+                <a href="https://www.linkedin.com/in/steveawong/" target="_blank" class="btn btn-primary">
+                    <i class="fa-brands fa-linkedin"></i> LinkedIn Profile
+                </a>
+                <a href="https://github.com/SteveWong-a" target="_blank" class="btn btn-secondary">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="https://huggingface.co/SteveaWong" target="_blank" class="btn btn-secondary">
+                    <i class="fa-solid fa-robot"></i> Hugging Face
+                </a>
+                <a href="mailto:stevealphawong@gmail.com" class="btn btn-secondary">
+                    <i class="fa-solid fa-envelope"></i> Email Me
+                </a>
+            </div>
+        </header>
+
+        <!-- Featured Projects -->
+        <section id="featured">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Featured Projects</h2>
+                    <p class="section-subtitle">Flagship web applications, machine learning deployments, and published research papers.</p>
+                </div>
+            </div>
+
+            <div class="grid-featured">
+
+                <!-- Hydrio App -->
+                <div class="card">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Web Application & Health Tech</span>
+                            <i class="fa-solid fa-glass-water" style="color: var(--accent-primary);"></i>
+                        </div>
+                        <h3 class="card-title">Hydrio — Water Intake Tracker</h3>
+                        <p class="card-desc">
+                            A real-time web application designed to help users establish healthy hydration habits. Features real-time water logging, customizable daily goals, interactive hydration visualizers, automated reminder triggers, and user account persistence.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">Firebase</span>
+                            <span class="tag">HTML5/CSS3</span>
+                            <span class="tag">Responsive Web</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="https://water-drinking-reminder-933bf.web.app/" target="_blank" class="card-link">
+                            Launch Application <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- NASA GMU Research Paper -->
+                <div class="card">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Astrophysics & Data Analysis</span>
+                            <i class="fa-solid fa-satellite" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <h3 class="card-title">NASA GMU Exoplanet Research Paper</h3>
+                        <p class="card-desc">
+                            Published astronomical research analyzing exoplanet candidate transit observations from the GMU Telescope. Mastered AstroImageJ for multi-aperture photometry and transit depth modeling, classifying TOI-3649.01 within the MARS repository in collaboration with NASA and GMU mentors.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">AstroImageJ</span>
+                            <span class="tag">Photometry</span>
+                            <span class="tag">NASA MARS Repository</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="https://doi.org/10.13021/MARS/15188" target="_blank" class="card-link">
+                            Read Research Paper (DOI) <i class="fa-solid fa-book-open"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- DIYA Research / Vanderbilt Paper -->
+                <div class="card">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Machine Learning & Econometrics</span>
+                            <i class="fa-solid fa-chart-line" style="color: var(--accent-green);"></i>
+                        </div>
+                        <h3 class="card-title">DIYA & Vanderbilt Microlending Paper</h3>
+                        <p class="card-desc">
+                            Research paper published in the Vanderbilt Young Scientist Journal titled <em>"Identifying Reliable Clients for Microlending: A Data-Driven Approach"</em>. Developed machine learning risk classification models removing credit-history bias to help financial institutions safely serve underserved communities.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">Scikit-Learn</span>
+                            <span class="tag">Predictive Modeling</span>
+                            <span class="tag">Data Analysis</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-link" style="color: var(--text-muted);">
+                            Published in Vanderbilt Young Scientist Journal (2025)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Skribbl AI Predictor -->
+                <div class="card">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Computer Vision & AI Deployment</span>
+                            <i class="fa-solid fa-pen-ruler" style="color: var(--accent-primary);"></i>
+                        </div>
+                        <h3 class="card-title">Skribbl AI Drawing Predictor</h3>
+                        <p class="card-desc">
+                            Interactive computer vision and deep learning application deployed on Hugging Face Spaces. Uses Convolutional Neural Networks (CNNs) to recognize and predict user sketches in real-time within a Skribbl.io-inspired drawing interface.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">PyTorch / TensorFlow</span>
+                            <span class="tag">CNN Architecture</span>
+                            <span class="tag">Hugging Face Spaces</span>
+                            <span class="tag">Gradio</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="https://huggingface.co/SteveaWong" target="_blank" class="card-link">
+                            View on Hugging Face <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Other / Additional Projects -->
+        <section id="projects">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">More Projects & Initiatives</h2>
+                    <p class="section-subtitle">Additional technical web builds, sports analytics, and community leadership.</p>
+                </div>
+            </div>
+
+            <div class="grid-secondary">
+
+                <!-- Swimming Lap Splits Tracker -->
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Sports Analytics Web App</span>
+                            <i class="fa-solid fa-stopwatch" style="color: var(--accent-primary);"></i>
+                        </div>
+                        <h3 class="card-title" style="font-size: 1.15rem;">Swimming Lap Splits Tracker</h3>
+                        <p class="card-desc">
+                            Full-stack web application built for competitive swim coaches and athletes to record, track, and visualize lap split times, race pace distributions, and swimmer progression metrics over time.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">Firebase Auth & Database</span>
+                            <span class="tag">Data Analytics</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="https://swimming-splits.web.app/login" target="_blank" class="card-link">
+                            Launch Swimming App <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- School Transportation Blog -->
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Civic Tech & Web</span>
+                            <i class="fa-solid fa-bus" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <h3 class="card-title" style="font-size: 1.15rem;">School Traffic & Transit Platform</h3>
+                        <p class="card-desc">
+                            MTC Norman Mineta Transportation Project Bronze Award-winning platform. Researched Bay Area transit accessibility, designed an LLM-powered transit navigation tool, and presented recommendations to SF City Council members.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">Wix / Web</span>
+                            <span class="tag">Transit LLM</span>
+                            <span class="tag">MTC Bronze Award</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="https://steveawong.wixsite.com/transform-transport" target="_blank" class="card-link">
+                            Visit Transit Blog <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Academic Leadership Class Websites -->
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Education & Web Design</span>
+                            <i class="fa-solid fa-laptop-code" style="color: var(--accent-green);"></i>
+                        </div>
+                        <h3 class="card-title" style="font-size: 1.15rem;">Academic Leadership Web Portals</h3>
+                        <p class="card-desc">
+                            Designed and managed web portals and digital materials for Dougherty Valley High School's Academic Leadership program, streamlining peer tutoring scheduling, student resources, and community outreach.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">Web Design</span>
+                            <span class="tag">Tutoring Portal</span>
+                            <span class="tag">DVHS Leadership</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Eagle Scout Project -->
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Engineering & Community Leadership</span>
+                            <i class="fa-solid fa-campground" style="color: var(--accent-primary);"></i>
+                        </div>
+                        <h3 class="card-title" style="font-size: 1.15rem;">Eagle Scout Sports Storage Project</h3>
+                        <p class="card-desc">
+                            Directed a 120-hour engineering leadership project managing material budget, design, and directing 430+ volunteer hours to build custom weatherproof sports storage structures for IFGF Church.
+                        </p>
+                        <div class="tech-tags">
+                            <span class="tag">BSA Eagle Scout</span>
+                            <span class="tag">Project Management</span>
+                            <span class="tag">430+ Vol. Hours</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Skills & Education -->
+        <section id="skills">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Skills & Education</h2>
+                    <p class="section-subtitle">Technical proficiencies, academic background, and leadership roles.</p>
+                </div>
+            </div>
+
+            <div class="skills-grid">
+                
+                <!-- Education -->
+                <div class="skill-box">
+                    <h3><i class="fa-solid fa-university" style="color: var(--accent-primary);"></i> Education</h3>
+                    <ul class="skill-list">
+                        <li class="skill-item">
+                            <strong>UIUC (Grainger Engineering)</strong>
+                            <span>Computer Science (2026+)</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>Dougherty Valley High School</strong>
+                            <span>Senior / High Honors</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>Community College Coursework</strong>
+                            <span>DVC & Compton (CS & Math)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Programming & Tools -->
+                <div class="skill-box">
+                    <h3><i class="fa-solid fa-code" style="color: var(--accent-secondary);"></i> Languages & Frameworks</h3>
+                    <ul class="skill-list">
+                        <li class="skill-item">
+                            <strong>Programming Languages</strong>
+                            <span>Python, C++, JavaScript, C, Assembly</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>AI & Data Science</strong>
+                            <span>PyTorch, CNNs, OpenCV, Pandas, NumPy</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>Web & Cloud</strong>
+                            <span>HTML5/CSS3, Firebase, Git, Hugging Face</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Work & Leadership -->
+                <div class="skill-box">
+                    <h3><i class="fa-solid fa-briefcase" style="color: var(--accent-green);"></i> Experience & Honors</h3>
+                    <ul class="skill-list">
+                        <li class="skill-item">
+                            <strong>Readyfly AI Startup</strong>
+                            <span>Data Analyst Intern (2024-Present)</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>Research Internships</strong>
+                            <span>NASA GMU & DIYA Vanderbilt</span>
+                        </li>
+                        <li class="skill-item">
+                            <strong>Boy Scouts of America</strong>
+                            <span>Eagle Scout Candidate & Troop Guide</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact">
+            <div class="contact-card">
+                <h2>Let's Connect</h2>
+                <p>Feel free to reach out for research opportunities, software engineering collaborations, or project inquiries!</p>
+                <div class="social-bar" style="justify-content: center; margin-bottom: 2rem;">
+                    <a href="mailto:stevealphawong@gmail.com" class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> stevealphawong@gmail.com
+                    </a>
+                    <a href="tel:9257337330" class="btn btn-secondary">
+                        <i class="fa-solid fa-phone"></i> (925) 733-7330
+                    </a>
+                </div>
+                <div class="social-bar" style="justify-content: center;">
+                    <a href="https://www.linkedin.com/in/steveawong/" target="_blank" class="card-link" style="font-size: 1rem;">
+                        <i class="fa-brands fa-linkedin"></i> LinkedIn
+                    </a>
+                    <a href="https://github.com/SteveWong-a" target="_blank" class="card-link" style="font-size: 1rem;">
+                        <i class="fa-brands fa-github"></i> GitHub
+                    </a>
+                    <a href="https://huggingface.co/SteveaWong" target="_blank" class="card-link" style="font-size: 1rem;">
+                        <i class="fa-solid fa-robot"></i> Hugging Face
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2026 Steve Wong • Personal Portfolio & Showcase</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
