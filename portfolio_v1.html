@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -46,7 +49,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: 
+            background:
                 radial-gradient(circle at 15% 15%, rgba(88, 166, 255, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 85% 65%, rgba(188, 140, 255, 0.08) 0%, transparent 40%);
             pointer-events: none;
@@ -230,6 +233,7 @@
             .grid-featured {
                 grid-template-columns: 1fr;
             }
+
             .hero h1 {
                 font-size: 2.3rem;
             }
@@ -410,10 +414,98 @@
             border-top: 1px solid var(--card-border);
             margin-top: 4rem;
         }
+
+        /* --- Interactive Cursor Spotlight --- */
+        @property --inner-size {
+            syntax: "<length-percentage>";
+            inherits: true;
+            initial-value: 0px;
+        }
+
+        @property --outer-size {
+            syntax: "<length-percentage>";
+            inherits: true;
+            initial-value: 0px;
+        }
+
+        .reveal-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            transition: --inner-size 0.2s ease-out, --outer-size 0.2s ease-out;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, -100%), black var(--inner-size, 0%), transparent var(--outer-size, 0%));
+            -webkit-mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, -100%), black var(--inner-size, 0%), transparent var(--outer-size, 0%));
+            mask-repeat: no-repeat;
+            -webkit-mask-repeat: no-repeat;
+            background: radial-gradient(circle at center, rgba(88, 166, 255, 0.1) 0%, rgba(188, 140, 255, 0.05) 50%, transparent 100%);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-layer {
+                transition: none !important;
+            }
+        }
+
+        /* --- Scroll-Driven Reveal --- */
+        .scroll-reveal {
+            opacity: 0;
+            transform: scale(0.95) translateY(30px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            @supports ((animation-timeline: view()) and (animation-range: entry)) {
+                @keyframes scaleUp {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(40px);
+                    }
+
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+
+                .scroll-reveal {
+                    opacity: 1;
+                    transform: none;
+                    transition: none;
+                    /* Reset for native */
+                    animation: scaleUp auto ease-out backwards;
+                    animation-timeline: view();
+                    animation-range: entry 5% cover 25%;
+                }
+            }
+        }
+        /* --- Dotted Wave Canvas --- */
+        #dotted-wave {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .content-fade {
+            transition: opacity 0.8s ease-out;
+        }
+
     </style>
 </head>
-<body>
 
+<body>
+    <canvas id="dotted-wave"></canvas>
+    <div class="reveal-layer"></div>
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
@@ -421,6 +513,7 @@
             <ul class="nav-links">
                 <li><a href="#featured">Featured</a></li>
                 <li><a href="#projects">Other Projects</a></li>
+                <li><a href="#experience">Work Experience</a></li>
                 <li><a href="#skills">Skills & Education</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
@@ -431,13 +524,15 @@
     <div class="container">
 
         <!-- Hero Section -->
-        <header class="hero">
+        <header class="hero scroll-reveal">
             <div class="badge">
                 <i class="fa-solid fa-graduation-cap"></i> Incoming Computer Science @ UIUC
             </div>
             <h1>Hi, I'm <span>Steve Wong</span>.</h1>
             <p class="tagline">
-                Passionate about Artificial Intelligence, Computer Vision, and Full-Stack Software Engineering. Experienced in building machine learning models, web applications, and published astrophysics & econometric research.
+                Passionate about Artificial Intelligence, Computer Vision, and Full-Stack Software Engineering.
+                Experienced in building machine learning models, web applications, and published astrophysics &
+                econometric research.
             </p>
             <div class="social-bar">
                 <a href="https://www.linkedin.com/in/steveawong/" target="_blank" class="btn btn-primary">
@@ -457,17 +552,18 @@
 
         <!-- Featured Projects -->
         <section id="featured">
-            <div class="section-header">
+            <div class="section-header scroll-reveal">
                 <div>
                     <h2 class="section-title">Featured Projects</h2>
-                    <p class="section-subtitle">Flagship web applications, machine learning deployments, and published research papers.</p>
+                    <p class="section-subtitle">Flagship web applications, machine learning deployments, and published
+                        research papers.</p>
                 </div>
             </div>
 
             <div class="grid-featured">
 
                 <!-- Hydrio App -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div class="card-featured-glow"></div>
                     <div>
                         <div class="card-header">
@@ -476,7 +572,9 @@
                         </div>
                         <h3 class="card-title">Hydrio — Water Intake Tracker</h3>
                         <p class="card-desc">
-                            A real-time web application designed to help users establish healthy hydration habits. Features real-time water logging, customizable daily goals, interactive hydration visualizers, automated reminder triggers, and user account persistence.
+                            A real-time web application designed to help users establish healthy hydration habits.
+                            Features real-time water logging, customizable daily goals, interactive hydration
+                            visualizers, automated reminder triggers, and user account persistence.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">JavaScript</span>
@@ -493,7 +591,7 @@
                 </div>
 
                 <!-- NASA GMU Research Paper -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div class="card-featured-glow"></div>
                     <div>
                         <div class="card-header">
@@ -502,7 +600,10 @@
                         </div>
                         <h3 class="card-title">NASA GMU Exoplanet Research Paper</h3>
                         <p class="card-desc">
-                            Published astronomical research analyzing exoplanet candidate transit observations from the GMU Telescope. Mastered AstroImageJ for multi-aperture photometry and transit depth modeling, classifying TOI-3649.01 within the MARS repository in collaboration with NASA and GMU mentors.
+                            Published astronomical research analyzing exoplanet candidate transit observations from the
+                            GMU Telescope. Mastered AstroImageJ for multi-aperture photometry and transit depth
+                            modeling, classifying TOI-3649.01 within the MARS repository in collaboration with NASA and
+                            GMU mentors.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">Python</span>
@@ -519,7 +620,7 @@
                 </div>
 
                 <!-- DIYA Research / Vanderbilt Paper -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div class="card-featured-glow"></div>
                     <div>
                         <div class="card-header">
@@ -528,7 +629,10 @@
                         </div>
                         <h3 class="card-title">DIYA & Vanderbilt Microlending Paper</h3>
                         <p class="card-desc">
-                            Research paper published in the Vanderbilt Young Scientist Journal titled <em>"Identifying Reliable Clients for Microlending: A Data-Driven Approach"</em>. Developed machine learning risk classification models removing credit-history bias to help financial institutions safely serve underserved communities.
+                            Research paper published in the Vanderbilt Young Scientist Journal titled <em>"Identifying
+                                Reliable Clients for Microlending: A Data-Driven Approach"</em>. Developed machine
+                            learning risk classification models removing credit-history bias to help financial
+                            institutions safely serve underserved communities.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">Python</span>
@@ -538,14 +642,15 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <span class="card-link" style="color: var(--text-muted);">
-                            Published in Vanderbilt Young Scientist Journal (2025)
-                        </span>
+                        <a href="https://wp0.vanderbilt.edu/youngscientistjournal/article/identifying-reliable-clients-for-microlending-a-data-driven-approach"
+                            target="_blank" class="card-link">
+                            Read Published Paper <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
                     </div>
                 </div>
 
                 <!-- Skribbl AI Predictor -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div class="card-featured-glow"></div>
                     <div>
                         <div class="card-header">
@@ -554,7 +659,9 @@
                         </div>
                         <h3 class="card-title">Skribbl AI Drawing Predictor</h3>
                         <p class="card-desc">
-                            Interactive computer vision and deep learning application deployed on Hugging Face Spaces. Uses Convolutional Neural Networks (CNNs) to recognize and predict user sketches in real-time within a Skribbl.io-inspired drawing interface.
+                            Interactive computer vision and deep learning application deployed on Hugging Face Spaces.
+                            Uses Convolutional Neural Networks (CNNs) to recognize and predict user sketches in
+                            real-time within a Skribbl.io-inspired drawing interface.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">PyTorch / TensorFlow</span>
@@ -564,7 +671,8 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <a href="https://huggingface.co/SteveaWong" target="_blank" class="card-link">
+                        <a href="https://huggingface.co/spaces/SteveaWong/AI-Drawing-Predictor" target="_blank"
+                            class="card-link">
                             View on Hugging Face <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
                     </div>
@@ -575,17 +683,18 @@
 
         <!-- Other / Additional Projects -->
         <section id="projects">
-            <div class="section-header">
+            <div class="section-header scroll-reveal">
                 <div>
                     <h2 class="section-title">More Projects & Initiatives</h2>
-                    <p class="section-subtitle">Additional technical web builds, sports analytics, and community leadership.</p>
+                    <p class="section-subtitle">Additional technical web builds, sports analytics, and community
+                        leadership.</p>
                 </div>
             </div>
 
             <div class="grid-secondary">
 
                 <!-- Swimming Lap Splits Tracker -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div>
                         <div class="card-header">
                             <span class="card-category">Sports Analytics Web App</span>
@@ -593,7 +702,9 @@
                         </div>
                         <h3 class="card-title" style="font-size: 1.15rem;">Swimming Lap Splits Tracker</h3>
                         <p class="card-desc">
-                            Full-stack web application built for competitive swim coaches and athletes to record, track, and visualize lap split times, race pace distributions, and swimmer progression metrics over time.
+                            Full-stack web application built for competitive swim coaches and athletes to record, track,
+                            and visualize lap split times, race pace distributions, and swimmer progression metrics over
+                            time.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">JavaScript</span>
@@ -609,7 +720,7 @@
                 </div>
 
                 <!-- School Transportation Blog -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div>
                         <div class="card-header">
                             <span class="card-category">Civic Tech & Web</span>
@@ -617,7 +728,9 @@
                         </div>
                         <h3 class="card-title" style="font-size: 1.15rem;">School Traffic & Transit Platform</h3>
                         <p class="card-desc">
-                            MTC Norman Mineta Transportation Project Bronze Award-winning platform. Researched Bay Area transit accessibility, designed an LLM-powered transit navigation tool, and presented recommendations to SF City Council members.
+                            MTC Norman Mineta Transportation Project Bronze Award-winning platform. Researched Bay Area
+                            transit accessibility, designed an LLM-powered transit navigation tool, and presented
+                            recommendations to SF City Council members.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">Wix / Web</span>
@@ -633,7 +746,7 @@
                 </div>
 
                 <!-- Academic Leadership Class Websites -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div>
                         <div class="card-header">
                             <span class="card-category">Education & Web Design</span>
@@ -641,7 +754,9 @@
                         </div>
                         <h3 class="card-title" style="font-size: 1.15rem;">Academic Leadership Web Portals</h3>
                         <p class="card-desc">
-                            Designed and managed web portals and digital materials for Dougherty Valley High School's Academic Leadership program, streamlining peer tutoring scheduling, student resources, and community outreach.
+                            Designed and managed web portals and digital materials for Dougherty Valley High School's
+                            Academic Leadership program, streamlining peer tutoring scheduling, student resources, and
+                            community outreach.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">Web Design</span>
@@ -652,7 +767,7 @@
                 </div>
 
                 <!-- Eagle Scout Project -->
-                <div class="card">
+                <div class="card scroll-reveal">
                     <div>
                         <div class="card-header">
                             <span class="card-category">Engineering & Community Leadership</span>
@@ -660,7 +775,9 @@
                         </div>
                         <h3 class="card-title" style="font-size: 1.15rem;">Eagle Scout Sports Storage Project</h3>
                         <p class="card-desc">
-                            Directed a 120-hour engineering leadership project managing material budget, design, and directing 430+ volunteer hours to build custom weatherproof sports storage structures for IFGF Church.
+                            Directed a 120-hour engineering leadership project managing material budget, design, and
+                            directing 430+ volunteer hours to build custom weatherproof sports storage structures for
+                            IFGF Church.
                         </p>
                         <div class="tech-tags">
                             <span class="tag">BSA Eagle Scout</span>
@@ -673,9 +790,73 @@
             </div>
         </section>
 
+        <!-- Work Experience -->
+        <section id="experience">
+            <div class="section-header scroll-reveal">
+                <div>
+                    <h2 class="section-title">Work Experience</h2>
+                    <p class="section-subtitle">Professional internships and research roles.</p>
+                </div>
+            </div>
+
+            <div class="grid-featured">
+                <!-- Readyfly -->
+                <div class="card scroll-reveal">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Data Analyst Intern</span>
+                            <i class="fa-solid fa-database" style="color: var(--accent-primary);"></i>
+                        </div>
+                        <h3 class="card-title">Readyfly AI Startup</h3>
+                        <p class="card-desc" style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
+                            November 2023 – Present
+                        </p>
+                        <ul class="card-desc" style="padding-left: 1.2rem; margin-bottom: 1.5rem;">
+                            <li style="margin-bottom: 0.5rem;">Designed and implemented data cleanup and sorting algorithms for a large dataset of job listings.</li>
+                            <li style="margin-bottom: 0.5rem;">Developed a database schema and queries to organize and retrieve job listing data.</li>
+                            <li style="margin-bottom: 0.5rem;">Automated data processing and visualization using Python scripts.</li>
+                            <li>Collaborated with team members to integrate data analysis into an AI Job report.</li>
+                        </ul>
+                        <div class="tech-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">Data Analysis</span>
+                            <span class="tag">SQL / Databases</span>
+                            <span class="tag">Automation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UCLA COSMOS -->
+                <div class="card scroll-reveal">
+                    <div class="card-featured-glow"></div>
+                    <div>
+                        <div class="card-header">
+                            <span class="card-category">Student Researcher @COSMOS</span>
+                            <i class="fa-solid fa-brain" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <h3 class="card-title">UCLA</h3>
+                        <p class="card-desc" style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
+                            July 2025 – August 2025
+                        </p>
+                        <ul class="card-desc" style="padding-left: 1.2rem; margin-bottom: 1.5rem;">
+                            <li style="margin-bottom: 0.5rem;">Modeled rat neural spatial navigation by applying single and multi-layer perceptrons to decode complex biological place-cell signals.</li>
+                            <li>Collaborated within a brain-inspired computing cohort to analyze direction-sensing data, bridging biological neural networks with computational models.</li>
+                        </ul>
+                        <div class="tech-tags">
+                            <span class="tag">Machine Learning</span>
+                            <span class="tag">Perceptrons</span>
+                            <span class="tag">Neural Networks</span>
+                            <span class="tag">Biological Computing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Skills & Education -->
         <section id="skills">
-            <div class="section-header">
+            <div class="section-header scroll-reveal">
                 <div>
                     <h2 class="section-title">Skills & Education</h2>
                     <p class="section-subtitle">Technical proficiencies, academic background, and leadership roles.</p>
@@ -683,9 +864,9 @@
             </div>
 
             <div class="skills-grid">
-                
+
                 <!-- Education -->
-                <div class="skill-box">
+                <div class="skill-box scroll-reveal">
                     <h3><i class="fa-solid fa-university" style="color: var(--accent-primary);"></i> Education</h3>
                     <ul class="skill-list">
                         <li class="skill-item">
@@ -704,8 +885,9 @@
                 </div>
 
                 <!-- Programming & Tools -->
-                <div class="skill-box">
-                    <h3><i class="fa-solid fa-code" style="color: var(--accent-secondary);"></i> Languages & Frameworks</h3>
+                <div class="skill-box scroll-reveal">
+                    <h3><i class="fa-solid fa-code" style="color: var(--accent-secondary);"></i> Languages & Frameworks
+                    </h3>
                     <ul class="skill-list">
                         <li class="skill-item">
                             <strong>Programming Languages</strong>
@@ -723,8 +905,9 @@
                 </div>
 
                 <!-- Work & Leadership -->
-                <div class="skill-box">
-                    <h3><i class="fa-solid fa-briefcase" style="color: var(--accent-green);"></i> Experience & Honors</h3>
+                <div class="skill-box scroll-reveal">
+                    <h3><i class="fa-solid fa-briefcase" style="color: var(--accent-green);"></i> Experience & Honors
+                    </h3>
                     <ul class="skill-list">
                         <li class="skill-item">
                             <strong>Readyfly AI Startup</strong>
@@ -746,9 +929,10 @@
 
         <!-- Contact Section -->
         <section id="contact">
-            <div class="contact-card">
+            <div class="contact-card scroll-reveal">
                 <h2>Let's Connect</h2>
-                <p>Feel free to reach out for research opportunities, software engineering collaborations, or project inquiries!</p>
+                <p>Feel free to reach out for research opportunities, software engineering collaborations, or project
+                    inquiries!</p>
                 <div class="social-bar" style="justify-content: center; margin-bottom: 2rem;">
                     <a href="mailto:stevealphawong@gmail.com" class="btn btn-primary">
                         <i class="fa-solid fa-paper-plane"></i> stevealphawong@gmail.com
@@ -758,13 +942,15 @@
                     </a>
                 </div>
                 <div class="social-bar" style="justify-content: center;">
-                    <a href="https://www.linkedin.com/in/steveawong/" target="_blank" class="card-link" style="font-size: 1rem;">
+                    <a href="https://www.linkedin.com/in/steveawong/" target="_blank" class="card-link"
+                        style="font-size: 1rem;">
                         <i class="fa-brands fa-linkedin"></i> LinkedIn
                     </a>
                     <a href="https://github.com/SteveWong-a" target="_blank" class="card-link" style="font-size: 1rem;">
                         <i class="fa-brands fa-github"></i> GitHub
                     </a>
-                    <a href="https://huggingface.co/SteveaWong" target="_blank" class="card-link" style="font-size: 1rem;">
+                    <a href="https://huggingface.co/SteveaWong" target="_blank" class="card-link"
+                        style="font-size: 1rem;">
                         <i class="fa-solid fa-robot"></i> Hugging Face
                     </a>
                 </div>
@@ -778,5 +964,210 @@
 
     </div>
 
+    <script>
+        // --- 1. Cursor Spotlight Glow ---
+        const revealLayer = document.querySelector('.reveal-layer');
+        let rect = document.body.getBoundingClientRect();
+
+        const resizeObserver = new ResizeObserver(() => {
+            rect = document.body.getBoundingClientRect();
+        });
+        resizeObserver.observe(document.body);
+
+        document.addEventListener('pointermove', (e) => {
+            const x = ((e.clientX) / window.innerWidth) * 100;
+            const y = ((e.clientY) / window.innerHeight) * 100;
+
+            revealLayer.style.setProperty('--mouse-x', `${x}%`);
+            revealLayer.style.setProperty('--mouse-y', `${y}%`);
+
+            // Expand spotlight on move
+            revealLayer.style.setProperty('--inner-size', '150px');
+            revealLayer.style.setProperty('--outer-size', '500px');
+        });
+
+        document.addEventListener('pointerleave', () => {
+            revealLayer.style.setProperty('--inner-size', '0px');
+            revealLayer.style.setProperty('--outer-size', '0px');
+        });
+
+        // --- 2. Scroll Reveal Fallback ---
+        if (!CSS.supports('(animation-timeline: view()) and (animation-range: entry)')) {
+            const scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                scrollObserver.observe(el);
+            });
+        }
+
+        // --- 3. 3D Card Tilt Effect ---
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            card.addEventListener('pointermove', (e) => {
+                const cardRect = card.getBoundingClientRect();
+                const x = e.clientX - cardRect.left;
+                const y = e.clientY - cardRect.top;
+
+                const centerX = cardRect.width / 2;
+                const centerY = cardRect.height / 2;
+
+                // Calculate rotation (max 10 degrees)
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+                card.style.boxShadow = `0 20px 40px -15px rgba(88, 166, 255, 0.2)`;
+            });
+
+            card.addEventListener('pointerleave', () => {
+                card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                card.style.transform = '';
+                card.style.boxShadow = '';
+
+                setTimeout(() => {
+                    card.style.transition = ''; // Reset to original transition
+                }, 500);
+            });
+
+            card.addEventListener('pointerenter', () => {
+                card.style.transition = 'transform 0.1s ease-out, box-shadow 0.1s ease-out';
+            });
+        });
+
+        // --- 4. Dotted Wave Canvas ---
+        const canvas = document.getElementById('dotted-wave');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        const dotSize = 1.5;
+        const dotSpacing = 35;
+        let dots = [];
+        let mouse = { x: -1000, y: -1000 };
+        let ripple = { active: false, radius: 0, x: 0, y: 0 };
+        
+        function initCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            dots = [];
+            for (let x = 0; x < width; x += dotSpacing) {
+                for (let y = 0; y < height; y += dotSpacing) {
+                    dots.push({ x: x, y: y, baseX: x, baseY: y });
+                }
+            }
+        }
+        
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            
+            if (ripple.active) {
+                ripple.radius += 10; // Speed of the ripple wave (slower)
+                if (ripple.radius > Math.max(width, height) * 2) {
+                    ripple.active = false;
+                }
+            }
+            
+            const maxDistance = 300;
+            
+            for (let i = 0; i < dots.length; i++) {
+                let dot = dots[i];
+                
+                // Cursor wave
+                let dx = mouse.x - dot.baseX;
+                let dy = mouse.y - dot.baseY;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                
+                let size = 0;
+                let offsetY = 0;
+                let alpha = 0;
+                
+                if (distance < maxDistance) {
+                    const wave = Math.sin((1 - (distance/maxDistance)) * Math.PI);
+                    size = wave * 8; 
+                    offsetY = wave * -15; 
+                    alpha = (1 - (distance / maxDistance)) * 0.8;
+                }
+                
+                // Click Ripple wave
+                if (ripple.active) {
+                    let rdx = dot.baseX - ripple.x;
+                    let rdy = dot.baseY - ripple.y;
+                    let rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+                    let distFromWave = Math.abs(rDist - ripple.radius);
+                    
+                    if (distFromWave < 250) {
+                        const rWave = Math.sin((1 - (distFromWave/250)) * Math.PI);
+                        size = Math.max(size, rWave * 15);
+                        offsetY = Math.min(offsetY, rWave * -25);
+                        alpha = Math.max(alpha, rWave * 1);
+                    }
+                }
+                
+                // Only render if visible
+                if (alpha > 0) {
+                    ctx.fillStyle = `rgba(88, 166, 255, ${alpha})`;
+                    ctx.save();
+                    ctx.translate(dot.baseX, dot.baseY + offsetY);
+                    // Give an angle to the dots (45 degrees)
+                    ctx.rotate(Math.PI / 4); 
+                    // Draw an angled dash
+                    ctx.fillRect(-size/2, -1, size, 2);
+                    ctx.restore();
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // --- 5. Page Transition Interception ---
+        const transitionNavLinks = document.querySelectorAll('.nav-links a');
+        const pageElements = document.querySelectorAll('nav, header, section, footer');
+        pageElements.forEach(el => el.classList.add('content-fade'));
+        
+        transitionNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                if (targetSection) {
+                    // Trigger custom wave animation
+                    ripple.active = true;
+                    ripple.radius = 0;
+                    ripple.x = e.clientX || window.innerWidth / 2;
+                    ripple.y = e.clientY || 80;
+                    
+                    // Fade out the screen content
+                    pageElements.forEach(el => el.style.opacity = '0');
+                    
+                    // Wait for fade out and wave to expand before scrolling
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 80,
+                            behavior: 'instant'
+                        });
+                        
+                        // Fade content back in
+                        pageElements.forEach(el => el.style.opacity = '1');
+                    }, 800);
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>
