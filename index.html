@@ -535,31 +535,6 @@
             transform: scale(1) translateY(0);
         }
 
-        @media (prefers-reduced-motion: no-preference) {
-            @supports ((animation-timeline: view()) and (animation-range: entry)) {
-                @keyframes scaleUp {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.95) translateY(40px);
-                    }
-
-                    to {
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-                }
-
-                .scroll-reveal {
-                    opacity: 1;
-                    transform: none;
-                    transition: none;
-                    /* Reset for native */
-                    animation: scaleUp auto ease-out backwards;
-                    animation-timeline: view();
-                    animation-range: entry 5% cover 25%;
-                }
-            }
-        }
 
         /* --- Dotted Wave Canvas --- */
         #dotted-wave {
@@ -1080,20 +1055,22 @@
             revealLayer.style.setProperty('--outer-size', '0px');
         });
 
-        // --- 2. Scroll Reveal Fallback ---
-        if (!CSS.supports('(animation-timeline: view()) and (animation-range: entry)')) {
-            const scrollObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
-
-            document.querySelectorAll('.scroll-reveal').forEach(el => {
-                scrollObserver.observe(el);
+        // --- 2. Scroll Reveal Animation ---
+        const scrollObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
             });
-        }
+        }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
+
+        document.querySelectorAll('.scroll-reveal').forEach((el, index) => {
+            if (el.classList.contains('card') || el.classList.contains('skill-box')) {
+                el.style.transitionDelay = `${(index % 3) * 0.15}s`;
+            }
+            scrollObserver.observe(el);
+        });
 
         // --- 3. 3D Card Tilt Effect ---
         const cards = document.querySelectorAll('.card');
