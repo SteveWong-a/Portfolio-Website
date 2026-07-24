@@ -107,6 +107,68 @@
             color: var(--accent-primary);
         }
 
+        /* --- Dropdown Resume Button --- */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .resume-btn {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem !important;
+            color: var(--text-color) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease !important;
+        }
+
+        .resume-btn:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.2);
+            color: var(--accent-primary) !important;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--card-bg);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            z-index: 999;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-content a {
+            color: var(--text-muted) !important;
+            padding: 12px 16px !important;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem !important;
+            transition: background 0.2s ease, color 0.2s ease !important;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--accent-primary) !important;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Layout Container */
         .container {
             max-width: 1100px;
@@ -487,11 +549,14 @@
                 }
             }
         }
+
         /* --- Dotted Wave Canvas --- */
         #dotted-wave {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
             z-index: -2;
         }
@@ -499,7 +564,6 @@
         .content-fade {
             transition: opacity 0.8s ease-out;
         }
-
     </style>
 </head>
 
@@ -516,6 +580,13 @@
                 <li><a href="#experience">Work Experience</a></li>
                 <li><a href="#skills">Skills & Education</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li class="dropdown">
+                    <a href="#" class="resume-btn">Download Resume <i class="fa-solid fa-caret-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="Steve_Wong_UIUX_Resume.pdf" target="_blank" download>Product Design UI/UX</a>
+                        <a href="Steve_Wong_ML_Resume.pdf" target="_blank" download>Machine Learning AI</a>
+                    </div>
+                </li>
             </ul>
         </div>
     </nav>
@@ -805,17 +876,21 @@
                     <div class="card-featured-glow"></div>
                     <div>
                         <div class="card-header">
-                            <span class="card-category">Data Analyst Intern</span>
+                            <span class="card-category">Data Analyst and Researcher</span>
                             <i class="fa-solid fa-database" style="color: var(--accent-primary);"></i>
                         </div>
                         <h3 class="card-title">Readyfly AI Startup</h3>
-                        <p class="card-desc" style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
+                        <p class="card-desc"
+                            style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
                             November 2023 – Present
                         </p>
                         <ul class="card-desc" style="padding-left: 1.2rem; margin-bottom: 1.5rem;">
-                            <li style="margin-bottom: 0.5rem;">Designed and implemented data cleanup and sorting algorithms for a large dataset of job listings.</li>
-                            <li style="margin-bottom: 0.5rem;">Developed a database schema and queries to organize and retrieve job listing data.</li>
-                            <li style="margin-bottom: 0.5rem;">Automated data processing and visualization using Python scripts.</li>
+                            <li style="margin-bottom: 0.5rem;">Designed and implemented data cleanup and sorting
+                                algorithms for a large dataset of job listings.</li>
+                            <li style="margin-bottom: 0.5rem;">Developed a database schema and queries to organize and
+                                retrieve job listing data.</li>
+                            <li style="margin-bottom: 0.5rem;">Automated data processing and visualization using Python
+                                scripts.</li>
                             <li>Collaborated with team members to integrate data analysis into an AI Job report.</li>
                         </ul>
                         <div class="tech-tags">
@@ -836,12 +911,15 @@
                             <i class="fa-solid fa-brain" style="color: var(--accent-secondary);"></i>
                         </div>
                         <h3 class="card-title">UCLA</h3>
-                        <p class="card-desc" style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
+                        <p class="card-desc"
+                            style="color: var(--text-muted); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
                             July 2025 – August 2025
                         </p>
                         <ul class="card-desc" style="padding-left: 1.2rem; margin-bottom: 1.5rem;">
-                            <li style="margin-bottom: 0.5rem;">Modeled rat neural spatial navigation by applying single and multi-layer perceptrons to decode complex biological place-cell signals.</li>
-                            <li>Collaborated within a brain-inspired computing cohort to analyze direction-sensing data, bridging biological neural networks with computational models.</li>
+                            <li style="margin-bottom: 0.5rem;">Modeled rat neural spatial navigation by applying single
+                                and multi-layer perceptrons to decode complex biological place-cell signals.</li>
+                            <li>Collaborated within a brain-inspired computing cohort to analyze direction-sensing data,
+                                bridging biological neural networks with computational models.</li>
                         </ul>
                         <div class="tech-tags">
                             <span class="tag">Machine Learning</span>
@@ -1044,14 +1122,14 @@
         // --- 4. Dotted Wave Canvas ---
         const canvas = document.getElementById('dotted-wave');
         const ctx = canvas.getContext('2d');
-        
+
         let width, height;
         const dotSize = 1.5;
         const dotSpacing = 35;
         let dots = [];
         let mouse = { x: -1000, y: -1000 };
         let ripple = { active: false, radius: 0, x: 0, y: 0 };
-        
+
         function initCanvas() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -1062,70 +1140,70 @@
                 }
             }
         }
-        
+
         window.addEventListener('resize', initCanvas);
         initCanvas();
-        
+
         document.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
         });
-        
+
         function animateCanvas() {
             ctx.clearRect(0, 0, width, height);
-            
+
             if (ripple.active) {
                 ripple.radius += 10; // Speed of the ripple wave (slower)
                 if (ripple.radius > Math.max(width, height) * 2) {
                     ripple.active = false;
                 }
             }
-            
+
             const maxDistance = 300;
-            
+
             for (let i = 0; i < dots.length; i++) {
                 let dot = dots[i];
-                
+
                 // Cursor wave
                 let dx = mouse.x - dot.baseX;
                 let dy = mouse.y - dot.baseY;
                 let distance = Math.sqrt(dx * dx + dy * dy);
-                
+
                 let size = 0;
                 let offsetY = 0;
                 let alpha = 0;
-                
+
                 if (distance < maxDistance) {
-                    const wave = Math.sin((1 - (distance/maxDistance)) * Math.PI);
-                    size = wave * 8; 
-                    offsetY = wave * -15; 
+                    const wave = Math.sin((1 - (distance / maxDistance)) * Math.PI);
+                    size = wave * 8;
+                    offsetY = wave * -15;
                     alpha = (1 - (distance / maxDistance)) * 0.8;
                 }
-                
+
                 // Click Ripple wave
                 if (ripple.active) {
                     let rdx = dot.baseX - ripple.x;
                     let rdy = dot.baseY - ripple.y;
                     let rDist = Math.sqrt(rdx * rdx + rdy * rdy);
                     let distFromWave = Math.abs(rDist - ripple.radius);
-                    
+
                     if (distFromWave < 250) {
-                        const rWave = Math.sin((1 - (distFromWave/250)) * Math.PI);
+                        const rWave = Math.sin((1 - (distFromWave / 250)) * Math.PI);
                         size = Math.max(size, rWave * 15);
                         offsetY = Math.min(offsetY, rWave * -25);
                         alpha = Math.max(alpha, rWave * 1);
                     }
                 }
-                
+
                 // Only render if visible
                 if (alpha > 0) {
                     ctx.fillStyle = `rgba(88, 166, 255, ${alpha})`;
                     ctx.save();
                     ctx.translate(dot.baseX, dot.baseY + offsetY);
                     // Give an angle to the dots (45 degrees)
-                    ctx.rotate(Math.PI / 4); 
+                    ctx.rotate(Math.PI / 4);
                     // Draw an angled dash
-                    ctx.fillRect(-size/2, -1, size, 2);
+                    ctx.fillRect(-size / 2, -1, size, 2);
                     ctx.restore();
                 }
             }
@@ -1134,33 +1212,33 @@
         animateCanvas();
 
         // --- 5. Page Transition Interception ---
-        const transitionNavLinks = document.querySelectorAll('.nav-links a');
+        const transitionNavLinks = document.querySelectorAll('.nav-links a[href^="#"]');
         const pageElements = document.querySelectorAll('nav, header, section, footer');
         pageElements.forEach(el => el.classList.add('content-fade'));
-        
+
         transitionNavLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href');
                 const targetSection = document.querySelector(targetId);
-                
+
                 if (targetSection) {
                     // Trigger custom wave animation
                     ripple.active = true;
                     ripple.radius = 0;
                     ripple.x = e.clientX || window.innerWidth / 2;
                     ripple.y = e.clientY || 80;
-                    
+
                     // Fade out the screen content
                     pageElements.forEach(el => el.style.opacity = '0');
-                    
+
                     // Wait for fade out and wave to expand before scrolling
                     setTimeout(() => {
                         window.scrollTo({
                             top: targetSection.offsetTop - 80,
                             behavior: 'instant'
                         });
-                        
+
                         // Fade content back in
                         pageElements.forEach(el => el.style.opacity = '1');
                     }, 800);
