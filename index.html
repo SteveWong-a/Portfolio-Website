@@ -12,6 +12,10 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Hugging Face Gradio Web Component -->
+    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/6.20.0/gradio.js"></script>
+    
     <style>
         :root {
             --bg-color: #0d1117;
@@ -618,6 +622,32 @@
             </div>
 
             <div class="grid-featured">
+
+                <!-- AI Drawing Predictor (Hugging Face) -->
+                <div class="card scroll-reveal">
+                    <div class="card-featured-glow"></div>
+                    <div style="width: 100%;">
+                        <div class="card-header">
+                            <span class="card-category">Machine Learning & Computer Vision</span>
+                            <i class="fa-solid fa-paintbrush" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <h3 class="card-title">AI Drawing Predictor</h3>
+                        <p class="card-desc">
+                            An interactive Hugging Face Space utilizing a convolutional neural network (CNN) to predict and classify your hand-drawn sketches in real-time. Try drawing something below!
+                        </p>
+                        
+                        <div style="width: 100%; border-radius: 8px; overflow: hidden; margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--card-border); background-color: white;">
+                            <gradio-app src="https://steveawong-ai-drawing-predictor.hf.space"></gradio-app>
+                        </div>
+                        
+                        <div class="tech-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">PyTorch</span>
+                            <span class="tag">Gradio</span>
+                            <span class="tag">Hugging Face</span>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Hydrio App -->
                 <div class="card scroll-reveal">
