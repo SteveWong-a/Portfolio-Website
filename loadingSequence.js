@@ -81,7 +81,7 @@
     // 2. CANVAS PIXEL-SAMPLING SHAPE GENERATOR
     // ============================================================
 
-    function getPositionsFromCanvas(text, isIcon = false, yOffset = 0, scale = 1.0) {
+    function getPositionsFromDrawing(drawFn, scale = 1.0) {
         const positions = new Float32Array(PARTICLE_COUNT * 3);
         const c = document.createElement('canvas');
         c.width = 800;
@@ -92,16 +92,15 @@
         ctx.fillRect(0, 0, 800, 800);
 
         ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
 
-        if (isIcon) {
-            ctx.font = '300px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-        } else {
-            ctx.font = '900 120px "Inter", sans-serif';
-        }
-
-        ctx.fillText(text, 400, 400 + yOffset);
+        ctx.save();
+        ctx.translate(400, 400); // Center
+        drawFn(ctx);
+        ctx.restore();
 
         const imgData = ctx.getImageData(0, 0, 800, 800).data;
         const validPixels = [];
@@ -109,9 +108,7 @@
         for (let y = 0; y < 800; y += 3) {
             for (let x = 0; x < 800; x += 3) {
                 const r = imgData[(y * 800 + x) * 4];
-                const g = imgData[(y * 800 + x) * 4 + 1];
-                const b = imgData[(y * 800 + x) * 4 + 2];
-                if ((r + g + b) > 50) {
+                if (r > 50) {
                     validPixels.push({ x: (x - 400) * 0.1, y: -(y - 400) * 0.1 });
                 }
             }
@@ -267,7 +264,7 @@
             vec3 pos = mix(position, aTarget, uProgress);
 
             // Slope field drift — fades as particles lock into shape
-            float driftFactor = (1.0 - uProgress) * uDriftStrength;
+            float driftFactor = uDriftStrength;
             float noiseScale = 0.04;
             float timeScale = 0.3;
 
@@ -442,15 +439,66 @@
     }
 
     // ============================================================
-    // 6. GENERATE ALL SHAPES (Via Canvas)
+    // 6. GENERATE ALL SHAPES (Via Canvas Drawing)
     // ============================================================
 
-    // Use emoji for perfect silhouettes across all devices
-    const bottleShape = getPositionsFromCanvas('🍼', true, 0, 1.2);
-    const poolShape = getPositionsFromCanvas('🌊', true, 0, 1.5);
-    const cameraShape = getPositionsFromCanvas('📸', true, 0, 1.3);
-    const telescopeShape = getPositionsFromCanvas('🔭🪐', true, 0, 1.2);
-    const textShape = getPositionsFromCanvas('Steve Wong', false, 0, 1.2);
+    const bottleShape = getPositionsFromDrawing((ctx) => {
+        // Bottle silhouette
+        ctx.beginPath();
+        ctx.roundRect(-40, -100, 80, 200, 20); // body
+        ctx.fill();
+        ctx.fillRect(-20, -150, 40, 60); // neck
+        ctx.fillRect(-30, -160, 60, 20); // cap
+    }, 0.8);
+
+    const poolShape = getPositionsFromDrawing((ctx) => {
+        // Pool / Waves
+        ctx.beginPath();
+        for (let x = -150; x <= 150; x += 10) {
+            const y = Math.sin(x * 0.05) * 20 - 40;
+            x === -150 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        for (let x = 150; x >= -150; x -= 10) {
+            const y = Math.sin(x * 0.05 + Math.PI) * 20 + 40;
+            x === 150 ? ctx.lineTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+    }, 1.2);
+
+    const cameraShape = getPositionsFromDrawing((ctx) => {
+        // Camera
+        ctx.fillRect(-120, -70, 240, 140); // body
+        ctx.fillRect(-40, -100, 80, 30); // flash
+        ctx.beginPath();
+        ctx.arc(0, 0, 50, 0, Math.PI * 2); // lens
+        ctx.fillStyle = '#000000'; // cut out
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+    }, 0.9);
+
+    const telescopeShape = getPositionsFromDrawing((ctx) => {
+        // Telescope
+        ctx.save();
+        ctx.rotate(-Math.PI / 6);
+        ctx.fillRect(-100, -30, 200, 60); // tube
+        ctx.restore();
+        // Planet
+        ctx.beginPath();
+        ctx.arc(150, -100, 40, 0, Math.PI * 2);
+        ctx.fill();
+        // Ring
+        ctx.beginPath();
+        ctx.ellipse(150, -100, 70, 15, Math.PI / 8, 0, Math.PI * 2);
+        ctx.stroke();
+    }, 0.9);
+
+    const textShape = getPositionsFromDrawing((ctx) => {
+        ctx.font = '900 130px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Steve Wong', 0, 0);
+    }, 0.9);
 
     // ============================================================
     // 7. ANIMATION LOOP
@@ -488,6 +536,9 @@
         onComplete: revealPortfolio
     });
 
+    // We start with a bit of drift, then settle
+    material.uniforms.uDriftStrength.value = 1.0;
+
     // --- Scene 1: Chaos → Water Bottle ---
     tl.add(() => updatePositionsToShape(bottleShape))
         .to(material.uniforms.uProgress, {
@@ -495,6 +546,11 @@
             duration: 2.0,
             ease: "power2.inOut"
         })
+        .to(material.uniforms.uDriftStrength, {
+            value: 0.1, // settle into shape
+            duration: 2.0,
+            ease: "power2.inOut"
+        }, "<")
         .to(camera.position, { z: 45, duration: 2.0, ease: "power2.inOut" }, "<");
 
     tl.to({}, { duration: 0.8 }); // Hold
