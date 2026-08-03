@@ -7,7 +7,7 @@
     'use strict';
 
     // --- Configuration ---
-    const PARTICLE_COUNT = 15000;
+    const PARTICLE_COUNT = 20000;
     const BG_PARTICLE_COUNT = 15000;
     const SHAPE_SCALE = 12;
 
@@ -189,9 +189,9 @@
             if (type < 0.3) {
                 let edge = Math.random();
                 let val = (Math.random() - 0.5) * 20;
-                if (edge < 0.33) { x = val; y = 10 * Math.sign(Math.random()-0.5); z = 10 * Math.sign(Math.random()-0.5); }
-                else if (edge < 0.66) { y = val; x = 10 * Math.sign(Math.random()-0.5); z = 10 * Math.sign(Math.random()-0.5); }
-                else { z = val; x = 10 * Math.sign(Math.random()-0.5); y = 10 * Math.sign(Math.random()-0.5); }
+                if (edge < 0.33) { x = val; y = 10 * Math.sign(Math.random() - 0.5); z = 10 * Math.sign(Math.random() - 0.5); }
+                else if (edge < 0.66) { y = val; x = 10 * Math.sign(Math.random() - 0.5); z = 10 * Math.sign(Math.random() - 0.5); }
+                else { z = val; x = 10 * Math.sign(Math.random() - 0.5); y = 10 * Math.sign(Math.random() - 0.5); }
             } else if (type < 0.4) {
                 x = -10 + Math.random() * 6;
                 y = 10 + Math.random() * 2;
@@ -594,218 +594,218 @@
 
     async function initShapesAndTimeline() {
 
-    const bottleShape = generateBottle(PARTICLE_COUNT);
-    const cvBoxShape = generateCVBox(PARTICLE_COUNT);
-    const telescopeShape = generateTelescope(PARTICLE_COUNT);
-    const textShape = getTextPositions('Steve Wong', 0.2);
+        const bottleShape = generateBottle(PARTICLE_COUNT);
+        const cvBoxShape = generateCVBox(PARTICLE_COUNT);
+        const textShape = getTextPositions('Steve Wong', 0.2);
 
-    // Await the image-sampled Eagle Scout shape
-    const eagleShape = await generatePointsFromImage('Scouting_America_Eagle_Scout_Logo.webp', PARTICLE_COUNT, 1.0);
+        // Await the image-sampled shapes
+        const eagleShape = await generatePointsFromImage('boyscout.jpeg', PARTICLE_COUNT, 1.0);
+        const telescopeShape = await generatePointsFromImage('telescope 3d.jpg', PARTICLE_COUNT, 1.0);
 
-    // ============================================================
-    // 7. ANIMATION LOOP
-    // ============================================================
+        // ============================================================
+        // 7. ANIMATION LOOP
+        // ============================================================
 
-    const clock = new THREE.Clock();
-    let animationId;
+        const clock = new THREE.Clock();
+        let animationId;
 
-    function animate() {
-        animationId = requestAnimationFrame(animate);
-        const elapsed = clock.getElapsedTime();
-        material.uniforms.uTime.value = elapsed;
-        bgMaterial.uniforms.uTime.value = elapsed;
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+            material.uniforms.uTime.value = elapsed;
+            bgMaterial.uniforms.uTime.value = elapsed;
 
-        // Sync background color with foreground
-        bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
+            // Sync background color with foreground
+            bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
 
-        // Gentle oscillating rotation so text remains front-facing
-        if (!window.isAligning) {
-            particles.rotation.y = Math.sin(elapsed * 0.15) * 0.2;
+            // Gentle oscillating rotation so text remains front-facing
+            if (!window.isAligning) {
+                particles.rotation.y = Math.sin(elapsed * 0.15) * 0.2;
+            }
+
+            // Background oscillates ±15 degrees (0.2618 radians)
+            bgParticles.rotation.y = Math.sin(elapsed * 0.3) * 0.2618;
+            bgParticles.rotation.x = Math.sin(elapsed * 0.2 + 1.0) * 0.08;
+
+            renderer.render(scene, camera);
         }
+        animate();
 
-        // Background oscillates ±15 degrees (0.2618 radians)
-        bgParticles.rotation.y = Math.sin(elapsed * 0.3) * 0.2618;
-        bgParticles.rotation.x = Math.sin(elapsed * 0.2 + 1.0) * 0.08;
+        // ============================================================
+        // 8. GSAP TIMELINE — THE NARRATIVE SEQUENCE
+        // ============================================================
 
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // ============================================================
-    // 8. GSAP TIMELINE — THE NARRATIVE SEQUENCE
-    // ============================================================
-
-    const tl = gsap.timeline({
-        delay: 0.5
-    });
-
-    // We start with a bit of drift, then settle
-    material.uniforms.uDriftStrength.value = 1.0;
-
-    // --- Scene 1: Water Bottle (Fluidity/Aquatics) — Water Blue ---
-    tl.add(() => updatePositionsToShape(bottleShape))
-        .to(material.uniforms.uColor.value, { r: 0.1, g: 0.5, b: 0.9, duration: 0.5 })
-        .to(material.uniforms.uProgress, {
-            value: 1.0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<")
-        .to(material.uniforms.uDriftStrength, {
-            value: 0.1,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<")
-        .to(camera.position, { z: 40, duration: 2.0, ease: "power2.inOut" }, "<");
-
-    tl.to({}, { duration: 1.5 }); // Hold
-
-    // --- Transition 1 (Explode): Bottle → Eagle Scout Medal — Metallic Silver-Blue ---
-    tl.to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.0, ease: "power2.in" })
-        .to(material.uniforms.uColor.value, { r: 0.85, g: 0.9, b: 0.95, duration: 1.0 }, "<");
-
-    tl.add(() => updatePositionsToShape(eagleShape))
-        .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
-        .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 45, y: 0, duration: 1.5, ease: "power2.out" }, "<");
-
-    tl.to({}, { duration: 1.5 }); // Hold
-
-    // --- Transition 2 (Implode → Explode): Scout Logo → CV Bounding Box — Green ---
-    tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
-        .to(material.uniforms.uColor.value, { r: 0.2, g: 0.9, b: 0.4, duration: 1.0 }, "<");
-
-    tl.add(() => {
-        updatePositionsToShape(cvBoxShape);
-        material.uniforms.uDriftStrength.value = 15.0;
-    })
-        .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
-        .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" }, "<")
-        .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 40, y: 0, duration: 1.5, ease: "power2.out" }, "<");
-
-    tl.to(camera.position, { z: 15, duration: 2.0, ease: "power4.in" }); // Zoom into bounding box
-
-    // --- Transition 3 (Explode): CV Box → Telescope — Purple ---
-    tl.to(material.uniforms.uDriftStrength, { value: 10.0, duration: 1.0, ease: "power2.in" })
-        .to(material.uniforms.uColor.value, { r: 0.73, g: 0.54, b: 1.0, duration: 1.0 }, "<");
-
-    tl.add(() => updatePositionsToShape(telescopeShape))
-        .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" })
-        .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 2.0, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 50, x: 0, y: 0, duration: 2.0, ease: "elastic.out(1, 0.5)" }, "<");
-
-    tl.to({}, { duration: 1.5 }); // Hold
-
-    // --- Transition 4 (Implode → Explode): Telescope → Steve Wong Text — Blue ---
-    tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
-        .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<");
-
-    tl.add(() => {
-        updatePositionsToShape(textShape);
-        material.uniforms.uDriftStrength.value = 12.0;
-    })
-        .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
-        .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" }, "<")
-        .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 65, y: 0, duration: 2.0, ease: "power2.out" }, "<");
-
-    tl.to({}, { duration: 1.5 }); // Hold on text longer
-
-    // --- Scene 6: Shrink and align exactly to the DOM text ---
-    tl.to({}, {
-        duration: 2.0,
-        onStart: () => {
-            window.isAligning = true; // Stop the auto-rotation in the render loop
-
-            const span = document.querySelector('.hero h1 span') || document.querySelector('.hero h1');
-            if (!span) return;
-            const rect = span.getBoundingClientRect();
-
-            // Screen center of the DOM element
-            const targetScreenX = rect.left + rect.width / 2;
-            const targetScreenY = rect.top + rect.height / 2;
-
-            // Convert to Normalized Device Coordinates (-1 to 1)
-            const ndcX = (targetScreenX / window.innerWidth) * 2 - 1;
-            const ndcY = -(targetScreenY / window.innerHeight) * 2 + 1;
-
-            // Calculate visible world boundaries at z=0 from camera at z=65
-            const vFOV = THREE.MathUtils.degToRad(camera.fov);
-            const height = 2 * Math.tan(vFOV / 2) * camera.position.z;
-            const width = height * camera.aspect;
-
-            // The exact world position to move the particles to
-            const targetWorldX = ndcX * (width / 2);
-            const targetWorldY = ndcY * (height / 2);
-
-            // Calculate precise scale to match DOM text width
-            // The 3D text is ~168 world units wide at uScale = 1.0
-            const particleWorldWidth = 168;
-            const fractionOfScreen = particleWorldWidth / width;
-            const targetScale = (rect.width / window.innerWidth) / fractionOfScreen;
-
-            // Animate particles to the exact location, scale, and rotation
-            gsap.to(particles.position, { x: targetWorldX, y: targetWorldY, duration: 2.0, ease: "power2.inOut" });
-            gsap.to(particles.rotation, { y: 0, x: 0, z: 0, duration: 2.0, ease: "power2.inOut" });
-            gsap.to(material.uniforms.uScale, { value: targetScale, duration: 2.0, ease: "power2.inOut" });
-
-            // Fade out the background particles completely
-            gsap.to(bgMaterial.uniforms.uColor.value, { r: 0, g: 0, b: 0, duration: 1.5 });
-        }
-    });
-
-    // Crossfade the overlay out right as it perfectly lands
-    tl.to(container, {
-        opacity: 0,
-        duration: 0.8,
-        ease: "power2.inOut",
-        onComplete: cleanup
-    }, "-=0.5");
-
-    // ============================================================
-    // 9. REVEAL PORTFOLIO & CLEANUP
-    // ============================================================
-
-    function cleanup() {
-        container.style.display = 'none';
-
-        // Stop the animation loop
-        if (animationId) cancelAnimationFrame(animationId);
-
-        // Dispose Three.js resources
-        geometry.dispose();
-        material.dispose();
-        bgGeometry.dispose();
-        bgMaterial.dispose();
-        renderer.dispose();
-        scene.remove(particles);
-        scene.remove(bgParticles);
-
-        // Remove canvas from DOM
-        if (canvas.parentNode) canvas.remove();
-    }
-
-    // ============================================================
-    // 10. SKIP BUTTON & RESIZE HANDLER
-    // ============================================================
-
-    if (skipBtn) {
-        skipBtn.addEventListener('click', () => {
-            tl.kill();
-            gsap.to(container, {
-                opacity: 0,
-                duration: 0.6,
-                ease: "power2.out",
-                onComplete: cleanup
-            });
+        const tl = gsap.timeline({
+            delay: 0.5
         });
-    }
 
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+        // We start with a bit of drift, then settle
+        material.uniforms.uDriftStrength.value = 1.0;
+
+        // --- Scene 1: Water Bottle (Fluidity/Aquatics) — Water Blue ---
+        tl.add(() => updatePositionsToShape(bottleShape))
+            .to(material.uniforms.uColor.value, { r: 0.1, g: 0.5, b: 0.9, duration: 0.5 })
+            .to(material.uniforms.uProgress, {
+                value: 1.0,
+                duration: 2.0,
+                ease: "power2.inOut"
+            }, "<")
+            .to(material.uniforms.uDriftStrength, {
+                value: 0.1,
+                duration: 2.0,
+                ease: "power2.inOut"
+            }, "<")
+            .to(camera.position, { z: 40, duration: 2.0, ease: "power2.inOut" }, "<");
+
+        tl.to({}, { duration: 1.5 }); // Hold
+
+        // --- Transition 1 (Explode): Bottle → Eagle Scout Medal — Metallic Silver-Blue ---
+        tl.to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.0, ease: "power2.in" })
+            .to(material.uniforms.uColor.value, { r: 0.85, g: 0.9, b: 0.95, duration: 1.0 }, "<");
+
+        tl.add(() => updatePositionsToShape(eagleShape))
+            .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
+            .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
+            .to(camera.position, { z: 45, y: 0, duration: 1.5, ease: "power2.out" }, "<");
+
+        tl.to({}, { duration: 1.5 }); // Hold
+
+        // --- Transition 2 (Implode → Explode): Scout Logo → CV Bounding Box — Green ---
+        tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
+            .to(material.uniforms.uColor.value, { r: 0.2, g: 0.9, b: 0.4, duration: 1.0 }, "<");
+
+        tl.add(() => {
+            updatePositionsToShape(cvBoxShape);
+            material.uniforms.uDriftStrength.value = 15.0;
+        })
+            .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+            .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" }, "<")
+            .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
+            .to(camera.position, { z: 40, y: 0, duration: 1.5, ease: "power2.out" }, "<");
+
+        tl.to(camera.position, { z: 15, duration: 2.0, ease: "power4.in" }); // Zoom into bounding box
+
+        // --- Transition 3 (Explode): CV Box → Telescope — Purple ---
+        tl.to(material.uniforms.uDriftStrength, { value: 10.0, duration: 1.0, ease: "power2.in" })
+            .to(material.uniforms.uColor.value, { r: 0.73, g: 0.54, b: 1.0, duration: 1.0 }, "<");
+
+        tl.add(() => updatePositionsToShape(telescopeShape))
+            .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" })
+            .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 2.0, ease: "power2.out" }, "<")
+            .to(camera.position, { z: 50, x: 0, y: 0, duration: 2.0, ease: "elastic.out(1, 0.5)" }, "<");
+
+        tl.to({}, { duration: 1.5 }); // Hold
+
+        // --- Transition 4 (Implode → Explode): Telescope → Steve Wong Text — Blue ---
+        tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
+            .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<");
+
+        tl.add(() => {
+            updatePositionsToShape(textShape);
+            material.uniforms.uDriftStrength.value = 12.0;
+        })
+            .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+            .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" }, "<")
+            .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<")
+            .to(camera.position, { z: 65, y: 0, duration: 2.0, ease: "power2.out" }, "<");
+
+        tl.to({}, { duration: 1.5 }); // Hold on text longer
+
+        // --- Scene 6: Shrink and align exactly to the DOM text ---
+        tl.to({}, {
+            duration: 2.0,
+            onStart: () => {
+                window.isAligning = true; // Stop the auto-rotation in the render loop
+
+                const span = document.querySelector('.hero h1 span') || document.querySelector('.hero h1');
+                if (!span) return;
+                const rect = span.getBoundingClientRect();
+
+                // Screen center of the DOM element
+                const targetScreenX = rect.left + rect.width / 2;
+                const targetScreenY = rect.top + rect.height / 2;
+
+                // Convert to Normalized Device Coordinates (-1 to 1)
+                const ndcX = (targetScreenX / window.innerWidth) * 2 - 1;
+                const ndcY = -(targetScreenY / window.innerHeight) * 2 + 1;
+
+                // Calculate visible world boundaries at z=0 from camera at z=65
+                const vFOV = THREE.MathUtils.degToRad(camera.fov);
+                const height = 2 * Math.tan(vFOV / 2) * camera.position.z;
+                const width = height * camera.aspect;
+
+                // The exact world position to move the particles to
+                const targetWorldX = ndcX * (width / 2);
+                const targetWorldY = ndcY * (height / 2);
+
+                // Calculate precise scale to match DOM text width
+                // The 3D text is ~168 world units wide at uScale = 1.0
+                const particleWorldWidth = 168;
+                const fractionOfScreen = particleWorldWidth / width;
+                const targetScale = (rect.width / window.innerWidth) / fractionOfScreen;
+
+                // Animate particles to the exact location, scale, and rotation
+                gsap.to(particles.position, { x: targetWorldX, y: targetWorldY, duration: 2.0, ease: "power2.inOut" });
+                gsap.to(particles.rotation, { y: 0, x: 0, z: 0, duration: 2.0, ease: "power2.inOut" });
+                gsap.to(material.uniforms.uScale, { value: targetScale, duration: 2.0, ease: "power2.inOut" });
+
+                // Fade out the background particles completely
+                gsap.to(bgMaterial.uniforms.uColor.value, { r: 0, g: 0, b: 0, duration: 1.5 });
+            }
+        });
+
+        // Crossfade the overlay out right as it perfectly lands
+        tl.to(container, {
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.inOut",
+            onComplete: cleanup
+        }, "-=0.5");
+
+        // ============================================================
+        // 9. REVEAL PORTFOLIO & CLEANUP
+        // ============================================================
+
+        function cleanup() {
+            container.style.display = 'none';
+
+            // Stop the animation loop
+            if (animationId) cancelAnimationFrame(animationId);
+
+            // Dispose Three.js resources
+            geometry.dispose();
+            material.dispose();
+            bgGeometry.dispose();
+            bgMaterial.dispose();
+            renderer.dispose();
+            scene.remove(particles);
+            scene.remove(bgParticles);
+
+            // Remove canvas from DOM
+            if (canvas.parentNode) canvas.remove();
+        }
+
+        // ============================================================
+        // 10. SKIP BUTTON & RESIZE HANDLER
+        // ============================================================
+
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                tl.kill();
+                gsap.to(container, {
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: "power2.out",
+                    onComplete: cleanup
+                });
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
     } // end of initShapesAndTimeline
 
