@@ -500,7 +500,7 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Steve Wong', 0, 0);
-    }, 0.9);
+    }, 0.5);
 
     // ============================================================
     // 7. ANIMATION LOOP
