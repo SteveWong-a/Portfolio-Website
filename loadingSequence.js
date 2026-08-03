@@ -253,6 +253,7 @@
         uniform float uTime;
         uniform float uProgress;
         uniform float uDriftStrength;
+        uniform float uScale;
         attribute vec3 aTarget;
         attribute float aRandom;
 
@@ -261,7 +262,7 @@
 
         void main() {
             // Interpolate between current position and target shape
-            vec3 pos = mix(position, aTarget, uProgress);
+            vec3 pos = mix(position, aTarget, uProgress) * uScale;
 
             // Slope field drift — fades as particles lock into shape
             float driftFactor = uDriftStrength;
@@ -328,6 +329,7 @@
             uTime: { value: 0 },
             uProgress: { value: 0.0 },
             uDriftStrength: { value: 1.0 },
+            uScale: { value: 1.0 },
             uColor: { value: new THREE.Color(0x58a6ff) }
         },
         vertexShader: vertexShader,
@@ -516,8 +518,8 @@
         // Sync background color with foreground
         bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
 
-        // Gentle rotation of the foreground particle system
-        particles.rotation.y += 0.001;
+        // Gentle oscillating rotation so text remains front-facing
+        particles.rotation.y = Math.sin(elapsed * 0.15) * 0.2;
 
         // Background oscillates ±15 degrees (0.2618 radians)
         bgParticles.rotation.y = Math.sin(elapsed * 0.3) * 0.2618;
@@ -553,92 +555,73 @@
         }, "<")
         .to(camera.position, { z: 45, duration: 2.0, ease: "power2.inOut" }, "<");
 
-    tl.to({}, { duration: 0.8 }); // Hold
+    tl.to({}, { duration: 1.0 }); // Hold
 
-    // --- Scene 2: Bottle → Swimming Pool (Waves) (color shifts to green) ---
+    // --- Transition 1 (Explode): Bottle → Swimming Pool ---
+    // EXPLODE OUT
+    tl.to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.0, ease: "power2.in" })
+      .to(material.uniforms.uColor.value, { r: 0.247, g: 0.725, b: 0.314, duration: 1.0 }, "<"); // Color shifts mid-explosion
+
+    // SWAP SHAPE AND PULL TOGETHER
     tl.add(() => updatePositionsToShape(poolShape))
-        .to(material.uniforms.uColor.value, {
-            r: 0.247, g: 0.725, b: 0.314,
-            duration: 1.5, ease: "power1.inOut"
-        })
-        .to(material.uniforms.uProgress, {
-            value: 1.0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<")
-        .to(camera.position, { z: 50, y: -2, duration: 2.0, ease: "power2.inOut" }, "<");
+      .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
+      .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
+      .to(camera.position, { z: 50, y: -2, duration: 1.5, ease: "power2.out" }, "<");
 
-    tl.to({}, { duration: 0.8 }); // Hold
+    tl.to({}, { duration: 1.0 }); // Hold
 
-    // --- Scene 3: Pool → Camera (color back to blue, zoom into lens) ---
-    tl.add(() => updatePositionsToShape(cameraShape))
-        .to(material.uniforms.uColor.value, {
-            r: 0.345, g: 0.651, b: 1.0,
-            duration: 1.5, ease: "power1.inOut"
-        })
-        .to(material.uniforms.uProgress, {
-            value: 1.0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<")
-        .to(camera.position, { z: 40, y: 0, duration: 2.0, ease: "power2.inOut" }, "<");
+    // --- Transition 2 (Implode -> Explode): Pool → Camera ---
+    // IMPLODE INWARD (Suck into a single point)
+    tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
+      .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<"); 
+
+    // SWAP SHAPE, EXPLODE OUT, THEN SETTLE
+    tl.add(() => {
+        updatePositionsToShape(cameraShape);
+        material.uniforms.uDriftStrength.value = 15.0; // High drift for explosion
+    })
+      .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+      .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" }, "<")
+      .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
+      .to(camera.position, { z: 40, y: 0, duration: 1.5, ease: "power2.out" }, "<");
 
     tl.to(camera.position, { z: 12, x: 8, duration: 1.5, ease: "power4.in" }); // Zoom into lens
 
-    // --- Scene 4: Camera → Telescope & Planet (snap back, purple color) ---
+    // --- Transition 3 (Explode): Camera → Telescope & Planet ---
+    // EXPLODE OUT
+    tl.to(material.uniforms.uDriftStrength, { value: 10.0, duration: 1.0, ease: "power2.in" })
+      .to(material.uniforms.uColor.value, { r: 0.737, g: 0.549, b: 1.0, duration: 1.0 }, "<");
+
+    // SWAP AND ASSEMBLE
     tl.add(() => updatePositionsToShape(telescopeShape))
-        .to(material.uniforms.uColor.value, {
-            r: 0.737, g: 0.549, b: 1.0,
-            duration: 1.5, ease: "power1.inOut"
-        })
-        .to(camera.position, {
-            z: 55, x: 0, y: 3,
-            duration: 2.0,
-            ease: "elastic.out(1, 0.6)"
-        }, "<")
-        .to(material.uniforms.uProgress, {
-            value: 1.0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<");
+      .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
+      .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
+      .to(camera.position, { z: 55, x: 0, y: 3, duration: 1.5, ease: "elastic.out(1, 0.6)" }, "<");
 
-    tl.to({}, { duration: 0.8 }); // Hold
+    tl.to({}, { duration: 1.0 }); // Hold
 
-    // --- Scene 5: Telescope → Steve Wong Text (bright blue) ---
-    tl.add(() => updatePositionsToShape(textShape))
-        .to(material.uniforms.uColor.value, {
-            r: 0.345, g: 0.651, b: 1.0,
-            duration: 1.5, ease: "power1.inOut"
-        })
-        .to(material.uniforms.uProgress, {
-            value: 1.0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<")
-        .to(camera.position, {
-            z: 65, y: 0,
-            duration: 2.0,
-            ease: "power2.inOut"
-        }, "<");
+    // --- Transition 4 (Implode -> Explode): Telescope → Steve Wong Text ---
+    // IMPLODE INWARD
+    tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
+      .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<"); 
 
-    tl.to({}, { duration: 1.2 }); // Hold on text
+    // SWAP SHAPE, EXPLODE OUT TO TEXT
+    tl.add(() => {
+        updatePositionsToShape(textShape);
+        material.uniforms.uDriftStrength.value = 12.0;
+    })
+      .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+      .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" }, "<")
+      .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<") // Very low drift for readable text
+      .to(camera.position, { z: 65, y: 0, duration: 2.0, ease: "power2.out" }, "<");
+
+    tl.to({}, { duration: 1.5 }); // Hold on text longer
 
     // --- Scene 6: Disperse and zoom out to reveal portfolio ---
-    tl.to(material.uniforms.uProgress, {
-        value: 0.0,
-        duration: 1.5,
-        ease: "power2.in"
-    })
-        .to(material.uniforms.uDriftStrength, {
-            value: 4.0,
-            duration: 1.5,
-            ease: "power2.in"
-        }, "<")
-        .to(camera.position, {
-            z: 200,
-            duration: 1.5,
-            ease: "power2.in"
-        }, "<");
+    tl.to(material.uniforms.uProgress, { value: 0.0, duration: 1.5, ease: "power2.in" })
+      .to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.5, ease: "power2.in" }, "<")
+      .to(camera.position, { z: 200, duration: 1.5, ease: "power2.in" }, "<");
+
 
     // ============================================================
     // 9. REVEAL PORTFOLIO & CLEANUP
