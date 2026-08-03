@@ -78,57 +78,170 @@
     })();
 
     // ============================================================
-    // 2. CANVAS PIXEL-SAMPLING SHAPE GENERATOR
+    // 2. PARAMETRIC SHAPE GENERATORS
     // ============================================================
 
-    function getPositionsFromDrawing(drawFn, scale = 1.0) {
-        const positions = new Float32Array(PARTICLE_COUNT * 3);
-        const c = document.createElement('canvas');
-        c.width = 800;
-        c.height = 800;
-        const ctx = c.getContext('2d', { willReadFrequently: true });
+    function createEmptyArray(count) {
+        return new Float32Array(count * 3);
+    }
 
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, 800, 800);
+    // 1. Water Bottle (from Water bottle.jpeg)
+    function generateBottle(particleCount) {
+        const arr = createEmptyArray(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+            let y = (Math.random() - 0.5) * 30;
+            let theta = Math.random() * Math.PI * 2;
+            let r = 6;
 
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 15;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        ctx.save();
-        ctx.translate(400, 400); // Center
-        drawFn(ctx);
-        ctx.restore();
-
-        const imgData = ctx.getImageData(0, 0, 800, 800).data;
-        const validPixels = [];
-
-        for (let y = 0; y < 800; y += 3) {
-            for (let x = 0; x < 800; x += 3) {
-                const r = imgData[(y * 800 + x) * 4];
-                if (r > 50) {
-                    validPixels.push({ x: (x - 400) * 0.1, y: -(y - 400) * 0.1 });
+            if (y > 10 && y <= 12) {
+                r = 6 - (y - 10) * 1.5;
+            } else if (y > 12 && y <= 14) {
+                r = 3;
+            } else if (y > 14) {
+                r = 3.5;
+                if (theta > 0 && theta < Math.PI / 2 && y > 14.5) {
+                    r = 3.5 + (Math.random() * 2);
                 }
             }
+
+            let radius = Math.random() > 0.8 ? r * Math.random() : r;
+
+            arr[i * 3] = radius * Math.cos(theta);
+            arr[i * 3 + 1] = y;
+            arr[i * 3 + 2] = radius * Math.sin(theta);
         }
+        return arr;
+    }
 
-        for (let i = 0; i < PARTICLE_COUNT; i++) {
-            if (validPixels.length > 0) {
-                const p = validPixels[Math.floor(Math.random() * validPixels.length)];
+    // 2. BSA Fleur-de-lis (from bsa logo.webp)
+    function generateScoutLogo(particleCount) {
+        const arr = createEmptyArray(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+            let section = Math.random();
+            let x, y, z = (Math.random() - 0.5) * 2;
 
-                const depthNoise = (Math.random() - 0.5) * 4;
-                const scatterX = (Math.random() - 0.5) * 0.5;
-                const scatterY = (Math.random() - 0.5) * 0.5;
-
-                positions[i * 3] = (p.x + scatterX) * SHAPE_SCALE * scale;
-                positions[i * 3 + 1] = (p.y + scatterY) * SHAPE_SCALE * scale;
-                positions[i * 3 + 2] = depthNoise * scale;
+            if (section < 0.4) {
+                let h = Math.random() * 20 - 10;
+                let w = (10 - Math.abs(h)) * 0.4 * (Math.random() - 0.5);
+                x = w; y = h;
+            } else if (section < 0.7) {
+                let side = section < 0.55 ? -1 : 1;
+                let t = Math.random() * Math.PI;
+                x = side * (3 + 5 * Math.sin(t)) + (Math.random() - 0.5);
+                y = -8 + 15 * Math.cos(t * 0.7) + (Math.random() - 0.5);
+            } else if (section < 0.85) {
+                x = (Math.random() - 0.5) * 12;
+                y = -4 + (Math.random() - 0.5) * 2;
+                z += 1.5;
             } else {
-                positions[i * 3] = (Math.random() - 0.5) * 50;
-                positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+                let side = section < 0.925 ? -1 : 1;
+                x = side * (2 + Math.random() * 4);
+                y = -10 - Math.random() * 4;
+            }
+
+            arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
+        }
+        return arr;
+    }
+
+    // 3. Object Detection Bounding Box (from computer vision.jpeg)
+    function generateCVBox(particleCount) {
+        const arr = createEmptyArray(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+            let type = Math.random();
+            let x, y, z;
+
+            if (type < 0.3) {
+                let edge = Math.random();
+                let val = (Math.random() - 0.5) * 20;
+                if (edge < 0.33) { x = val; y = 10 * Math.sign(Math.random()-0.5); z = 10 * Math.sign(Math.random()-0.5); }
+                else if (edge < 0.66) { y = val; x = 10 * Math.sign(Math.random()-0.5); z = 10 * Math.sign(Math.random()-0.5); }
+                else { z = val; x = 10 * Math.sign(Math.random()-0.5); y = 10 * Math.sign(Math.random()-0.5); }
+            } else if (type < 0.4) {
+                x = -10 + Math.random() * 6;
+                y = 10 + Math.random() * 2;
+                z = 10;
+            } else {
+                let r = Math.random() * 7;
+                let theta = Math.random() * Math.PI * 2;
+                let phi = Math.acos((Math.random() * 2) - 1);
+                x = r * Math.sin(phi) * Math.cos(theta);
+                y = r * Math.sin(phi) * Math.sin(theta) - 2;
+                z = r * Math.cos(phi);
+            }
+
+            arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
+        }
+        return arr;
+    }
+
+    // 4. Observatory Telescope (from telescope 3d model.jpg)
+    function generateTelescope(particleCount) {
+        const arr = createEmptyArray(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+            let part = Math.random();
+            let x, y, z;
+
+            if (part < 0.3) {
+                let theta = Math.random() * Math.PI * 2;
+                let r = 8 + (Math.random() * 2);
+                y = -15 + Math.random() * 10;
+                x = r * Math.cos(theta);
+                z = r * Math.sin(theta);
+            } else if (part < 0.5) {
+                x = (Math.random() - 0.5) * 16;
+                y = -5 + Math.random() * 8;
+                z = (Math.random() > 0.5 ? -1 : 1) * 6;
+            } else if (part < 0.8) {
+                let length = (Math.random() - 0.5) * 20;
+                let theta = Math.random() * Math.PI * 2;
+                let r = 6;
+                let tubeX = length * 0.707;
+                let tubeY = length * 0.707;
+                x = tubeX + r * Math.cos(theta) * 0.707;
+                y = tubeY - r * Math.cos(theta) * 0.707;
+                z = r * Math.sin(theta);
+            } else {
+                let theta = Math.random() * Math.PI * 2;
+                let r = 6.5;
+                x = 10 + r * Math.cos(theta) * 0.707;
+                y = 10 - r * Math.cos(theta) * 0.707;
+                z = r * Math.sin(theta);
+            }
+
+            arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
+        }
+        return arr;
+    }
+
+    // Canvas-based text generator for Steve Wong
+    function getTextPositions(text, scale) {
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const c = document.createElement('canvas');
+        c.width = 800; c.height = 800;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 800, 800);
+        ctx.fillStyle = '#fff';
+        ctx.font = '900 130px "Inter", sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, 400, 400);
+        const imgData = ctx.getImageData(0, 0, 800, 800).data;
+        const px = [];
+        for (let y = 0; y < 800; y += 3) {
+            for (let x = 0; x < 800; x += 3) {
+                if (imgData[(y * 800 + x) * 4] > 50) px.push({ x: (x-400)*0.1, y: -(y-400)*0.1 });
+            }
+        }
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            if (px.length > 0) {
+                const p = px[Math.floor(Math.random() * px.length)];
+                positions[i*3] = (p.x + (Math.random()-0.5)*0.5) * SHAPE_SCALE * scale;
+                positions[i*3+1] = (p.y + (Math.random()-0.5)*0.5) * SHAPE_SCALE * scale;
+                positions[i*3+2] = (Math.random()-0.5) * 4 * scale;
+            } else {
+                positions[i*3] = (Math.random()-0.5)*50;
+                positions[i*3+1] = (Math.random()-0.5)*50;
+                positions[i*3+2] = (Math.random()-0.5)*50;
             }
         }
         return positions;
@@ -441,66 +554,14 @@
     }
 
     // ============================================================
-    // 6. GENERATE ALL SHAPES (Via Canvas Drawing)
+    // 6. GENERATE ALL SHAPES
     // ============================================================
 
-    const bottleShape = getPositionsFromDrawing((ctx) => {
-        // Bottle silhouette
-        ctx.beginPath();
-        ctx.roundRect(-40, -100, 80, 200, 20); // body
-        ctx.fill();
-        ctx.fillRect(-20, -150, 40, 60); // neck
-        ctx.fillRect(-30, -160, 60, 20); // cap
-    }, 0.8);
-
-    const poolShape = getPositionsFromDrawing((ctx) => {
-        // Pool / Waves
-        ctx.beginPath();
-        for (let x = -150; x <= 150; x += 10) {
-            const y = Math.sin(x * 0.05) * 20 - 40;
-            x === -150 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        }
-        for (let x = 150; x >= -150; x -= 10) {
-            const y = Math.sin(x * 0.05 + Math.PI) * 20 + 40;
-            x === 150 ? ctx.lineTo(x, y) : ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.fill();
-    }, 1.2);
-
-    const cameraShape = getPositionsFromDrawing((ctx) => {
-        // Camera
-        ctx.fillRect(-120, -70, 240, 140); // body
-        ctx.fillRect(-40, -100, 80, 30); // flash
-        ctx.beginPath();
-        ctx.arc(0, 0, 50, 0, Math.PI * 2); // lens
-        ctx.fillStyle = '#000000'; // cut out
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-    }, 0.9);
-
-    const telescopeShape = getPositionsFromDrawing((ctx) => {
-        // Telescope
-        ctx.save();
-        ctx.rotate(-Math.PI / 6);
-        ctx.fillRect(-100, -30, 200, 60); // tube
-        ctx.restore();
-        // Planet
-        ctx.beginPath();
-        ctx.arc(150, -100, 40, 0, Math.PI * 2);
-        ctx.fill();
-        // Ring
-        ctx.beginPath();
-        ctx.ellipse(150, -100, 70, 15, Math.PI / 8, 0, Math.PI * 2);
-        ctx.stroke();
-    }, 0.9);
-
-    const textShape = getPositionsFromDrawing((ctx) => {
-        ctx.font = '900 130px "Inter", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Steve Wong', 0, 0);
-    }, 0.2);
+    const bottleShape = generateBottle(PARTICLE_COUNT);
+    const scoutShape = generateScoutLogo(PARTICLE_COUNT);
+    const cvBoxShape = generateCVBox(PARTICLE_COUNT);
+    const telescopeShape = generateTelescope(PARTICLE_COUNT);
+    const textShape = getTextPositions('Steve Wong', 0.2);
 
     // ============================================================
     // 7. ANIMATION LOOP
@@ -542,78 +603,71 @@
     // We start with a bit of drift, then settle
     material.uniforms.uDriftStrength.value = 1.0;
 
-    // --- Scene 1: Chaos → Water Bottle ---
+    // --- Scene 1: Water Bottle (Fluidity/Aquatics) — Water Blue ---
     tl.add(() => updatePositionsToShape(bottleShape))
+        .to(material.uniforms.uColor.value, { r: 0.1, g: 0.5, b: 0.9, duration: 0.5 })
         .to(material.uniforms.uProgress, {
             value: 1.0,
             duration: 2.0,
             ease: "power2.inOut"
-        })
+        }, "<")
         .to(material.uniforms.uDriftStrength, {
-            value: 0.1, // settle into shape
+            value: 0.1,
             duration: 2.0,
             ease: "power2.inOut"
         }, "<")
-        .to(camera.position, { z: 45, duration: 2.0, ease: "power2.inOut" }, "<");
+        .to(camera.position, { z: 40, duration: 2.0, ease: "power2.inOut" }, "<");
 
-    tl.to({}, { duration: 1.0 }); // Hold
+    tl.to({}, { duration: 1.5 }); // Hold
 
-    // --- Transition 1 (Explode): Bottle → Swimming Pool ---
-    // EXPLODE OUT
+    // --- Transition 1 (Explode): Bottle → BSA Scout Logo — Scout Red ---
     tl.to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.0, ease: "power2.in" })
-        .to(material.uniforms.uColor.value, { r: 0.247, g: 0.725, b: 0.314, duration: 1.0 }, "<"); // Color shifts mid-explosion
+        .to(material.uniforms.uColor.value, { r: 0.9, g: 0.2, b: 0.2, duration: 1.0 }, "<");
 
-    // SWAP SHAPE AND PULL TOGETHER
-    tl.add(() => updatePositionsToShape(poolShape))
+    tl.add(() => updatePositionsToShape(scoutShape))
         .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
         .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 50, y: -2, duration: 1.5, ease: "power2.out" }, "<");
+        .to(camera.position, { z: 45, y: 0, duration: 1.5, ease: "power2.out" }, "<");
 
-    tl.to({}, { duration: 1.0 }); // Hold
+    tl.to({}, { duration: 1.5 }); // Hold
 
-    // --- Transition 2 (Implode -> Explode): Pool → Camera ---
-    // IMPLODE INWARD (Suck into a single point)
+    // --- Transition 2 (Implode → Explode): Scout Logo → CV Bounding Box — Green ---
     tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
-        .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<");
+        .to(material.uniforms.uColor.value, { r: 0.2, g: 0.9, b: 0.4, duration: 1.0 }, "<");
 
-    // SWAP SHAPE, EXPLODE OUT, THEN SETTLE
     tl.add(() => {
-        updatePositionsToShape(cameraShape);
-        material.uniforms.uDriftStrength.value = 15.0; // High drift for explosion
+        updatePositionsToShape(cvBoxShape);
+        material.uniforms.uDriftStrength.value = 15.0;
     })
         .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
         .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" }, "<")
         .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
         .to(camera.position, { z: 40, y: 0, duration: 1.5, ease: "power2.out" }, "<");
 
-    tl.to(camera.position, { z: 12, x: 8, duration: 1.5, ease: "power4.in" }); // Zoom into lens
+    tl.to(camera.position, { z: 15, duration: 2.0, ease: "power4.in" }); // Zoom into bounding box
 
-    // --- Transition 3 (Explode): Camera → Telescope & Planet ---
-    // EXPLODE OUT
+    // --- Transition 3 (Explode): CV Box → Telescope — Purple ---
     tl.to(material.uniforms.uDriftStrength, { value: 10.0, duration: 1.0, ease: "power2.in" })
-        .to(material.uniforms.uColor.value, { r: 0.737, g: 0.549, b: 1.0, duration: 1.0 }, "<");
+        .to(material.uniforms.uColor.value, { r: 0.73, g: 0.54, b: 1.0, duration: 1.0 }, "<");
 
-    // SWAP AND ASSEMBLE
     tl.add(() => updatePositionsToShape(telescopeShape))
-        .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
-        .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
-        .to(camera.position, { z: 55, x: 0, y: 3, duration: 1.5, ease: "elastic.out(1, 0.6)" }, "<");
+        .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" })
+        .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 2.0, ease: "power2.out" }, "<")
+        .to(camera.position, { z: 50, x: 0, y: 0, duration: 2.0, ease: "elastic.out(1, 0.5)" }, "<");
 
-    tl.to({}, { duration: 1.0 }); // Hold
+    tl.to({}, { duration: 1.5 }); // Hold
 
-    // --- Transition 4 (Implode -> Explode): Telescope → Steve Wong Text ---
-    // IMPLODE INWARD
+    // --- Transition 4 (Implode → Explode): Telescope → Steve Wong Text — Blue ---
     tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
         .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<");
 
-    // SWAP SHAPE, EXPLODE OUT TO TEXT
     tl.add(() => {
         updatePositionsToShape(textShape);
         material.uniforms.uDriftStrength.value = 12.0;
     })
         .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
         .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" }, "<")
-        .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<") // Very low drift for readable text
+        .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<")
         .to(camera.position, { z: 65, y: 0, duration: 2.0, ease: "power2.out" }, "<");
 
     tl.to({}, { duration: 1.5 }); // Hold on text longer
