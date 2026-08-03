@@ -113,94 +113,70 @@
         return arr;
     }
 
-    // 2. Eagle Scout Medal (from bsa logo.webp)
-    function generateEagleLogo(particleCount) {
-        const arr = createEmptyArray(particleCount);
-        for (let i = 0; i < particleCount; i++) {
-            let part = Math.random();
-            let x, y, z = (Math.random() - 0.5) * 1.5; // Slight base depth
 
-            if (part < 0.35) {
-                // 1. Outer Ovals (The "Scouting America" border)
-                let theta = Math.random() * Math.PI * 2;
-                // Create two distinct rings to give the badge structural thickness
-                let isOuterRing = Math.random() > 0.5;
-                let rX = isOuterRing ? 16 : 13.5;
-                let rY = isOuterRing ? 20 : 17.5;
+    // 2. Image Pixel Sampler for Eagle Scout Logo
+    function generatePointsFromImage(imageSrc, particleCount, scale = 1.0) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = imageSrc;
 
-                // Add a little noise to the rings so they look like a particle field
-                x = (rX + (Math.random() - 0.5)) * Math.cos(theta);
-                y = (rY + (Math.random() - 0.5)) * Math.sin(theta);
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                const ctx = c.getContext('2d');
 
-            } else if (part < 0.70) {
-                // 2. Upward Sweeping Wings (The iconic U-shape)
-                let side = Math.random() > 0.5 ? 1 : -1;
-                let t = Math.random(); // Position along the wing (0 = base, 1 = tip)
+                const width = 150;
+                const height = (img.height / img.width) * width;
+                c.width = width;
+                c.height = height;
 
-                let wingX = t * 10; // Width stretch
-                // Exponential curve to sweep the wings upward
-                let wingBaseY = Math.pow(wingX, 1.4) * 0.35;
-                // Feathers get thicker and fan out more toward the wingtips
-                let featherSpread = Math.random() * (2 + t * 6);
+                ctx.drawImage(img, 0, 0, width, height);
+                const imageData = ctx.getImageData(0, 0, width, height).data;
 
-                x = side * (1.5 + wingX); // Offset from the center body
-                y = 1 + wingBaseY + featherSpread;
-                z += (Math.random() - 0.5) * 3; // Give the wings more 3D volume
+                const validPoints = [];
 
-            } else if (part < 0.82) {
-                // 3. Central Shield & Chest
-                let tX = (Math.random() - 0.5) * 6; // Width of the shield
-                let tY = Math.random() * 11 - 4;    // Height span from -4 to 7
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const index = (y * width + x) * 4;
+                        const r = imageData[index];
+                        const g = imageData[index + 1];
+                        const b = imageData[index + 2];
+                        const a = imageData[index + 3];
 
-                // Mathematically taper the bottom of the shield to a V-point
-                if (tY < 0 && Math.abs(tX) > (tY + 4) * 1.5) {
-                    // If particles fall in the bottom corners, push them into the center
-                    tX *= 0.3;
-                }
-                x = tX;
-                y = tY;
-                z += 2; // Make the shield pop out toward the camera
-
-            } else if (part < 0.86) {
-                // 4. Eagle Head & Beak (Facing Left)
-                if (Math.random() > 0.4) {
-                    // Round head dome
-                    let theta = Math.random() * Math.PI; // Top half of a circle
-                    let r = Math.random() * 2.2;
-                    x = r * Math.cos(theta);
-                    y = 6.5 + r * Math.sin(theta);
-                } else {
-                    // Beak jutting out to the left
-                    x = -1.5 - Math.random() * 3.5;
-                    y = 7 + (Math.random() - 0.5) * 1.5;
+                        if (a > 10 && (r < 245 || g < 245 || b < 245)) {
+                            let pX = (x - width / 2) * 0.22 * scale;
+                            let pY = -(y - height / 2) * 0.22 * scale;
+                            validPoints.push({ x: pX, y: pY });
+                        }
+                    }
                 }
 
-            } else if (part < 0.92) {
-                // 5. Tail Feathers (Fanning downward)
-                let tY = Math.random() * -5 - 4; // Downward from y=-4 to -9
-                let spread = (Math.abs(tY) - 4) * 0.6; // Get wider at the bottom
-                x = (Math.random() - 0.5) * (3 + spread);
-                y = tY;
-
-            } else {
-                // 6. "Be Prepared" Scroll & Hanging Knot
-                let sX = (Math.random() - 0.5) * 12; // Width of the ribbon
-                // Parabolic curve for the ribbon ends pointing slightly upward
-                y = -10.5 + Math.pow(Math.abs(sX), 1.2) * 0.15 + (Math.random() * 1.5);
-                x = sX;
-
-                // Drop a small cluster of particles for the knot below the scroll
-                if (Math.random() > 0.85) {
-                    x = (Math.random() - 0.5) * 1.5;
-                    y = -12.5 - Math.random() * 2.5;
+                const arr = new Float32Array(particleCount * 3);
+                for (let i = 0; i < particleCount; i++) {
+                    const targetPoint = validPoints[Math.floor(Math.random() * validPoints.length)];
+                    if (targetPoint) {
+                        arr[i * 3] = targetPoint.x;
+                        arr[i * 3 + 1] = targetPoint.y;
+                        arr[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
+                    }
                 }
-            }
+                resolve(arr);
+            };
 
-            arr[i * 3] = x;
-            arr[i * 3 + 1] = y;
-            arr[i * 3 + 2] = z;
-        }
-        return arr;
+            // Fallback if image fails to load — use a simple circle
+            img.onerror = () => {
+                console.warn('Eagle Scout image not found, using fallback shape');
+                const arr = new Float32Array(particleCount * 3);
+                for (let i = 0; i < particleCount; i++) {
+                    const theta = Math.random() * Math.PI * 2;
+                    const r = Math.random() * 10;
+                    arr[i * 3] = r * Math.cos(theta);
+                    arr[i * 3 + 1] = r * Math.sin(theta);
+                    arr[i * 3 + 2] = (Math.random() - 0.5) * 2;
+                }
+                resolve(arr);
+            };
+        });
     }
 
     // 3. Object Detection Bounding Box (from computer vision.jpeg)
@@ -613,14 +589,18 @@
     }
 
     // ============================================================
-    // 6. GENERATE ALL SHAPES
+    // 6. GENERATE ALL SHAPES (async for image loading)
     // ============================================================
 
+    async function initShapesAndTimeline() {
+
     const bottleShape = generateBottle(PARTICLE_COUNT);
-    const eagleShape = generateEagleLogo(PARTICLE_COUNT);
     const cvBoxShape = generateCVBox(PARTICLE_COUNT);
     const telescopeShape = generateTelescope(PARTICLE_COUNT);
     const textShape = getTextPositions('Steve Wong', 0.2);
+
+    // Await the image-sampled Eagle Scout shape
+    const eagleShape = await generatePointsFromImage('Scouting_America_Eagle_Scout_Logo.webp', PARTICLE_COUNT, 1.0);
 
     // ============================================================
     // 7. ANIMATION LOOP
@@ -826,5 +806,10 @@
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
+    } // end of initShapesAndTimeline
+
+    // Start the async initialization
+    initShapesAndTimeline();
 
 })();
