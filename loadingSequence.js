@@ -118,47 +118,86 @@
         const arr = createEmptyArray(particleCount);
         for (let i = 0; i < particleCount; i++) {
             let part = Math.random();
-            let x, y, z = (Math.random() - 0.5); // Base thin depth
+            let x, y, z = (Math.random() - 0.5) * 1.5; // Slight base depth
 
-            if (part < 0.08) {
-                // Eagle Head (Top center)
-                let r = Math.random() * 2.5;
+            if (part < 0.35) {
+                // 1. Outer Ovals (The "Scouting America" border)
                 let theta = Math.random() * Math.PI * 2;
-                x = r * Math.cos(theta);
-                y = 10 + r * Math.sin(theta);
-            } else if (part < 0.45) {
-                // Spread Wings (Broad horizontal sweep)
+                // Create two distinct rings to give the badge structural thickness
+                let isOuterRing = Math.random() > 0.5;
+                let rX = isOuterRing ? 16 : 13.5;
+                let rY = isOuterRing ? 20 : 17.5;
+
+                // Add a little noise to the rings so they look like a particle field
+                x = (rX + (Math.random() - 0.5)) * Math.cos(theta);
+                y = (rY + (Math.random() - 0.5)) * Math.sin(theta);
+
+            } else if (part < 0.70) {
+                // 2. Upward Sweeping Wings (The iconic U-shape)
                 let side = Math.random() > 0.5 ? 1 : -1;
-                let span = Math.random() * 22; // Wing length
-                x = side * (2 + span);
-                // Wings taper at the ends and curve slightly upwards
-                let thickness = Math.max(0.5, 6 - (span * 0.25));
-                y = 5 + (span * 0.15) + (Math.random() - 0.5) * thickness;
-                z = (Math.random() - 0.5) * 3; // Wings have slightly more 3D volume
-            } else if (part < 0.75) {
-                // Body & Central Shield
-                let height = Math.random() * 12; // 0 to 12
-                y = 8 - height; // Sweeps from y=8 down to y=-4
-                
-                // Shield width tapers to a point at the bottom
-                let width = 6.5;
-                let currentWidth = y < 0 ? width * (1 - Math.abs(y) / 5) : width;
-                x = (Math.random() - 0.5) * currentWidth;
-                z += 2; // Shield pops out in the Z-axis
-            } else if (part < 0.88) {
-                // Tail feathers (Pointing straight down)
-                x = (Math.random() - 0.5) * 4;
-                y = -4 - (Math.random() * 7);
+                let t = Math.random(); // Position along the wing (0 = base, 1 = tip)
+
+                let wingX = t * 10; // Width stretch
+                // Exponential curve to sweep the wings upward
+                let wingBaseY = Math.pow(wingX, 1.4) * 0.35;
+                // Feathers get thicker and fan out more toward the wingtips
+                let featherSpread = Math.random() * (2 + t * 6);
+
+                x = side * (1.5 + wingX); // Offset from the center body
+                y = 1 + wingBaseY + featherSpread;
+                z += (Math.random() - 0.5) * 3; // Give the wings more 3D volume
+
+            } else if (part < 0.82) {
+                // 3. Central Shield & Chest
+                let tX = (Math.random() - 0.5) * 6; // Width of the shield
+                let tY = Math.random() * 11 - 4;    // Height span from -4 to 7
+
+                // Mathematically taper the bottom of the shield to a V-point
+                if (tY < 0 && Math.abs(tX) > (tY + 4) * 1.5) {
+                    // If particles fall in the bottom corners, push them into the center
+                    tX *= 0.3;
+                }
+                x = tX;
+                y = tY;
+                z += 2; // Make the shield pop out toward the camera
+
+            } else if (part < 0.86) {
+                // 4. Eagle Head & Beak (Facing Left)
+                if (Math.random() > 0.4) {
+                    // Round head dome
+                    let theta = Math.random() * Math.PI; // Top half of a circle
+                    let r = Math.random() * 2.2;
+                    x = r * Math.cos(theta);
+                    y = 6.5 + r * Math.sin(theta);
+                } else {
+                    // Beak jutting out to the left
+                    x = -1.5 - Math.random() * 3.5;
+                    y = 7 + (Math.random() - 0.5) * 1.5;
+                }
+
+            } else if (part < 0.92) {
+                // 5. Tail Feathers (Fanning downward)
+                let tY = Math.random() * -5 - 4; // Downward from y=-4 to -9
+                let spread = (Math.abs(tY) - 4) * 0.6; // Get wider at the bottom
+                x = (Math.random() - 0.5) * (3 + spread);
+                y = tY;
+
             } else {
-                // The Be Prepared Scroll (Curved ribbon at the bottom)
-                let scrollX = (Math.random() - 0.5) * 16;
-                x = scrollX;
-                // The ribbon arcs upwards at the edges
-                y = -13 + Math.abs(scrollX) * 0.18 + (Math.random() - 0.5) * 1.5;
+                // 6. "Be Prepared" Scroll & Hanging Knot
+                let sX = (Math.random() - 0.5) * 12; // Width of the ribbon
+                // Parabolic curve for the ribbon ends pointing slightly upward
+                y = -10.5 + Math.pow(Math.abs(sX), 1.2) * 0.15 + (Math.random() * 1.5);
+                x = sX;
+
+                // Drop a small cluster of particles for the knot below the scroll
+                if (Math.random() > 0.85) {
+                    x = (Math.random() - 0.5) * 1.5;
+                    y = -12.5 - Math.random() * 2.5;
+                }
             }
 
-            arr[i * 3] = x; 
-            arr[i * 3 + 1] = y; 
+            arr[i * 3] = x;
+            arr[i * 3 + 1] = y;
             arr[i * 3 + 2] = z;
         }
         return arr;
@@ -249,19 +288,19 @@
         const px = [];
         for (let y = 0; y < 800; y += 3) {
             for (let x = 0; x < 800; x += 3) {
-                if (imgData[(y * 800 + x) * 4] > 50) px.push({ x: (x-400)*0.1, y: -(y-400)*0.1 });
+                if (imgData[(y * 800 + x) * 4] > 50) px.push({ x: (x - 400) * 0.1, y: -(y - 400) * 0.1 });
             }
         }
         for (let i = 0; i < PARTICLE_COUNT; i++) {
             if (px.length > 0) {
                 const p = px[Math.floor(Math.random() * px.length)];
-                positions[i*3] = (p.x + (Math.random()-0.5)*0.5) * SHAPE_SCALE * scale;
-                positions[i*3+1] = (p.y + (Math.random()-0.5)*0.5) * SHAPE_SCALE * scale;
-                positions[i*3+2] = (Math.random()-0.5) * 4 * scale;
+                positions[i * 3] = (p.x + (Math.random() - 0.5) * 0.5) * SHAPE_SCALE * scale;
+                positions[i * 3 + 1] = (p.y + (Math.random() - 0.5) * 0.5) * SHAPE_SCALE * scale;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 4 * scale;
             } else {
-                positions[i*3] = (Math.random()-0.5)*50;
-                positions[i*3+1] = (Math.random()-0.5)*50;
-                positions[i*3+2] = (Math.random()-0.5)*50;
+                positions[i * 3] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
             }
         }
         return positions;
@@ -693,43 +732,43 @@
     tl.to({}, { duration: 1.5 }); // Hold on text longer
 
     // --- Scene 6: Shrink and align exactly to the DOM text ---
-    tl.to({}, { 
-        duration: 2.0, 
+    tl.to({}, {
+        duration: 2.0,
         onStart: () => {
             window.isAligning = true; // Stop the auto-rotation in the render loop
-            
+
             const span = document.querySelector('.hero h1 span') || document.querySelector('.hero h1');
             if (!span) return;
             const rect = span.getBoundingClientRect();
-            
+
             // Screen center of the DOM element
             const targetScreenX = rect.left + rect.width / 2;
             const targetScreenY = rect.top + rect.height / 2;
-            
+
             // Convert to Normalized Device Coordinates (-1 to 1)
             const ndcX = (targetScreenX / window.innerWidth) * 2 - 1;
             const ndcY = -(targetScreenY / window.innerHeight) * 2 + 1;
-            
+
             // Calculate visible world boundaries at z=0 from camera at z=65
             const vFOV = THREE.MathUtils.degToRad(camera.fov);
             const height = 2 * Math.tan(vFOV / 2) * camera.position.z;
             const width = height * camera.aspect;
-            
+
             // The exact world position to move the particles to
             const targetWorldX = ndcX * (width / 2);
             const targetWorldY = ndcY * (height / 2);
-            
+
             // Calculate precise scale to match DOM text width
             // The 3D text is ~168 world units wide at uScale = 1.0
-            const particleWorldWidth = 168; 
+            const particleWorldWidth = 168;
             const fractionOfScreen = particleWorldWidth / width;
             const targetScale = (rect.width / window.innerWidth) / fractionOfScreen;
-            
+
             // Animate particles to the exact location, scale, and rotation
             gsap.to(particles.position, { x: targetWorldX, y: targetWorldY, duration: 2.0, ease: "power2.inOut" });
             gsap.to(particles.rotation, { y: 0, x: 0, z: 0, duration: 2.0, ease: "power2.inOut" });
             gsap.to(material.uniforms.uScale, { value: targetScale, duration: 2.0, ease: "power2.inOut" });
-            
+
             // Fade out the background particles completely
             gsap.to(bgMaterial.uniforms.uColor.value, { r: 0, g: 0, b: 0, duration: 1.5 });
         }
