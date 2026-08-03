@@ -8,6 +8,7 @@
 
     // --- Configuration ---
     const PARTICLE_COUNT = 15000;
+    const BG_PARTICLE_COUNT = 8000;
     const SHAPE_SCALE = 12;
 
     // --- DOM References ---
@@ -474,6 +475,77 @@
     scene.add(particles);
 
     // ============================================================
+    // 4b. BACKGROUND SLOPE FIELD PARTICLES
+    // ============================================================
+
+    const bgGeometry = new THREE.BufferGeometry();
+    const bgPositions = new Float32Array(BG_PARTICLE_COUNT * 3);
+    const bgRandomSeed = new Float32Array(BG_PARTICLE_COUNT);
+
+    // Spread background particles in a wide, flat field around the scene
+    for (let i = 0; i < BG_PARTICLE_COUNT; i++) {
+        bgPositions[i * 3]     = (Math.random() - 0.5) * 120;
+        bgPositions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+        bgPositions[i * 3 + 2] = (Math.random() - 0.5) * 60 - 15; // pushed slightly behind
+        bgRandomSeed[i] = Math.random();
+    }
+
+    bgGeometry.setAttribute('position', new THREE.BufferAttribute(bgPositions, 3));
+    bgGeometry.setAttribute('aRandom', new THREE.BufferAttribute(bgRandomSeed, 1));
+
+    // Background vertex shader — always drifting, smaller points
+    const bgVertexShader = `
+        ${noiseGLSL}
+
+        uniform float uTime;
+        attribute float aRandom;
+
+        varying float vAlpha;
+        varying float vRandom;
+
+        void main() {
+            vec3 pos = position;
+
+            // Continuous slope field drift (never locks into shape)
+            float noiseScale = 0.02;
+            float timeScale = 0.2;
+
+            float nx = snoise(pos * noiseScale + vec3(uTime * timeScale, 0.0, 50.0));
+            float ny = snoise(pos * noiseScale + vec3(0.0, uTime * timeScale, 150.0));
+            float nz = snoise(pos * noiseScale + vec3(0.0, 0.0, uTime * timeScale + 250.0));
+
+            pos.x += nx * 3.0;
+            pos.y += ny * 3.0;
+            pos.z += nz * 1.5;
+
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+
+            // Small points for background
+            gl_PointSize = 1.8 * (50.0 / -mvPosition.z);
+
+            gl_Position = projectionMatrix * mvPosition;
+
+            vAlpha = 0.15 + aRandom * 0.1;
+            vRandom = aRandom;
+        }
+    `;
+
+    const bgMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uColor: { value: new THREE.Color(0x58a6ff) }
+        },
+        vertexShader: bgVertexShader,
+        fragmentShader: fragmentShader,  // Reuse the same dash fragment shader
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    const bgParticles = new THREE.Points(bgGeometry, bgMaterial);
+    scene.add(bgParticles);
+
+    // ============================================================
     // 5. SHAPE UPDATE UTILITY
     // ============================================================
 
@@ -518,10 +590,19 @@
 
     function animate() {
         animationId = requestAnimationFrame(animate);
-        material.uniforms.uTime.value = clock.getElapsedTime();
+        const elapsed = clock.getElapsedTime();
+        material.uniforms.uTime.value = elapsed;
+        bgMaterial.uniforms.uTime.value = elapsed;
 
-        // Gentle rotation of the whole particle system
+        // Sync background color with foreground
+        bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
+
+        // Gentle rotation of the foreground particle system
         particles.rotation.y += 0.001;
+
+        // Background oscillates ±15 degrees (0.2618 radians)
+        bgParticles.rotation.y = Math.sin(elapsed * 0.3) * 0.2618;
+        bgParticles.rotation.x = Math.sin(elapsed * 0.2 + 1.0) * 0.08;
 
         renderer.render(scene, camera);
     }
@@ -645,8 +726,11 @@
         // Dispose Three.js resources
         geometry.dispose();
         material.dispose();
+        bgGeometry.dispose();
+        bgMaterial.dispose();
         renderer.dispose();
         scene.remove(particles);
+        scene.remove(bgParticles);
 
         // Remove canvas from DOM
         if (canvas.parentNode) canvas.remove();
