@@ -113,33 +113,53 @@
         return arr;
     }
 
-    // 2. BSA Fleur-de-lis (from bsa logo.webp)
-    function generateScoutLogo(particleCount) {
+    // 2. Eagle Scout Medal (from bsa logo.webp)
+    function generateEagleLogo(particleCount) {
         const arr = createEmptyArray(particleCount);
         for (let i = 0; i < particleCount; i++) {
-            let section = Math.random();
-            let x, y, z = (Math.random() - 0.5) * 2;
+            let part = Math.random();
+            let x, y, z = (Math.random() - 0.5); // Base thin depth
 
-            if (section < 0.4) {
-                let h = Math.random() * 20 - 10;
-                let w = (10 - Math.abs(h)) * 0.4 * (Math.random() - 0.5);
-                x = w; y = h;
-            } else if (section < 0.7) {
-                let side = section < 0.55 ? -1 : 1;
-                let t = Math.random() * Math.PI;
-                x = side * (3 + 5 * Math.sin(t)) + (Math.random() - 0.5);
-                y = -8 + 15 * Math.cos(t * 0.7) + (Math.random() - 0.5);
-            } else if (section < 0.85) {
-                x = (Math.random() - 0.5) * 12;
-                y = -4 + (Math.random() - 0.5) * 2;
-                z += 1.5;
+            if (part < 0.08) {
+                // Eagle Head (Top center)
+                let r = Math.random() * 2.5;
+                let theta = Math.random() * Math.PI * 2;
+                x = r * Math.cos(theta);
+                y = 10 + r * Math.sin(theta);
+            } else if (part < 0.45) {
+                // Spread Wings (Broad horizontal sweep)
+                let side = Math.random() > 0.5 ? 1 : -1;
+                let span = Math.random() * 22; // Wing length
+                x = side * (2 + span);
+                // Wings taper at the ends and curve slightly upwards
+                let thickness = Math.max(0.5, 6 - (span * 0.25));
+                y = 5 + (span * 0.15) + (Math.random() - 0.5) * thickness;
+                z = (Math.random() - 0.5) * 3; // Wings have slightly more 3D volume
+            } else if (part < 0.75) {
+                // Body & Central Shield
+                let height = Math.random() * 12; // 0 to 12
+                y = 8 - height; // Sweeps from y=8 down to y=-4
+                
+                // Shield width tapers to a point at the bottom
+                let width = 6.5;
+                let currentWidth = y < 0 ? width * (1 - Math.abs(y) / 5) : width;
+                x = (Math.random() - 0.5) * currentWidth;
+                z += 2; // Shield pops out in the Z-axis
+            } else if (part < 0.88) {
+                // Tail feathers (Pointing straight down)
+                x = (Math.random() - 0.5) * 4;
+                y = -4 - (Math.random() * 7);
             } else {
-                let side = section < 0.925 ? -1 : 1;
-                x = side * (2 + Math.random() * 4);
-                y = -10 - Math.random() * 4;
+                // The Be Prepared Scroll (Curved ribbon at the bottom)
+                let scrollX = (Math.random() - 0.5) * 16;
+                x = scrollX;
+                // The ribbon arcs upwards at the edges
+                y = -13 + Math.abs(scrollX) * 0.18 + (Math.random() - 0.5) * 1.5;
             }
 
-            arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
+            arr[i * 3] = x; 
+            arr[i * 3 + 1] = y; 
+            arr[i * 3 + 2] = z;
         }
         return arr;
     }
@@ -558,7 +578,7 @@
     // ============================================================
 
     const bottleShape = generateBottle(PARTICLE_COUNT);
-    const scoutShape = generateScoutLogo(PARTICLE_COUNT);
+    const eagleShape = generateEagleLogo(PARTICLE_COUNT);
     const cvBoxShape = generateCVBox(PARTICLE_COUNT);
     const telescopeShape = generateTelescope(PARTICLE_COUNT);
     const textShape = getTextPositions('Steve Wong', 0.2);
@@ -620,11 +640,11 @@
 
     tl.to({}, { duration: 1.5 }); // Hold
 
-    // --- Transition 1 (Explode): Bottle → BSA Scout Logo — Scout Red ---
+    // --- Transition 1 (Explode): Bottle → Eagle Scout Medal — Metallic Silver-Blue ---
     tl.to(material.uniforms.uDriftStrength, { value: 8.0, duration: 1.0, ease: "power2.in" })
-        .to(material.uniforms.uColor.value, { r: 0.9, g: 0.2, b: 0.2, duration: 1.0 }, "<");
+        .to(material.uniforms.uColor.value, { r: 0.85, g: 0.9, b: 0.95, duration: 1.0 }, "<");
 
-    tl.add(() => updatePositionsToShape(scoutShape))
+    tl.add(() => updatePositionsToShape(eagleShape))
         .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" })
         .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
         .to(camera.position, { z: 45, y: 0, duration: 1.5, ease: "power2.out" }, "<");
