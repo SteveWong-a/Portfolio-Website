@@ -12,10 +12,14 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- Three.js & GSAP for Loading Sequence -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
     <!-- Hugging Face Gradio Web Component -->
     <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/6.20.0/gradio.js"></script>
-    
+
     <style>
         :root {
             --bg-color: #0d1117;
@@ -559,8 +563,10 @@
         #gradio-modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
             justify-content: center;
@@ -582,7 +588,7 @@
             position: absolute;
             top: 10px;
             right: 15px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             color: white;
             border: none;
             border-radius: 50%;
@@ -594,10 +600,54 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* --- Loading Sequence Overlay --- */
+        #loading-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: #0d1117;
+        }
+
+        #antigravity-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #skip-intro {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            transition: background 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        #skip-intro:hover {
+            background: rgba(88, 166, 255, 0.15);
+        }
     </style>
 </head>
 
 <body>
+    <!-- Antigravity Loading Sequence -->
+    <div id="loading-canvas-container">
+        <canvas id="antigravity-canvas"></canvas>
+        <button id="skip-intro">Skip Intro</button>
+    </div>
+
     <canvas id="dotted-wave"></canvas>
     <div class="reveal-layer"></div>
     <!-- Navigation -->
@@ -671,11 +721,12 @@
                             <span class="card-category">Computer Vision & AI Deployment</span>
                             <i class="fa-solid fa-pen-ruler" style="color: var(--accent-primary);"></i>
                         </div>
-                        <h3 class="card-title">Skribbl AI Drawing Predictor</h3>
+                        <h3 class="card-title"> AI Drawing Predictor</h3>
                         <p class="card-desc">
                             Interactive computer vision and deep learning application deployed on Hugging Face Spaces.
                             Uses Convolutional Neural Networks (CNNs) to recognize and predict user sketches in
-                            real-time within a Skribbl.io-inspired drawing interface.
+                            real-time within a Skribbl.io-inspired drawing interface. Trained on Quick Draw! Google
+                            datasets, and
                         </p>
                         <div class="tech-tags" style="margin-top: 1.5rem;">
                             <span class="tag">PyTorch / TensorFlow</span>
@@ -684,11 +735,13 @@
                             <span class="tag">Gradio</span>
                         </div>
                     </div>
-                    <div class="card-footer" style="margin-top: auto; padding-top: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <div class="card-footer"
+                        style="margin-top: auto; padding-top: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap;">
                         <a href="#" id="open-gradio-modal" class="card-link">
                             Launch Interactive Demo <i class="fa-solid fa-paintbrush"></i>
                         </a>
-                        <a href="https://huggingface.co/spaces/SteveaWong/AI-Drawing-Predictor" target="_blank" class="card-link">
+                        <a href="https://huggingface.co/spaces/SteveaWong/AI-Drawing-Predictor" target="_blank"
+                            class="card-link">
                             View on Hugging Face <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
                     </div>
@@ -1313,6 +1366,9 @@
             });
         });
     </script>
+
+    <!-- Antigravity Loading Sequence -->
+    <script src="loadingSequence.js"></script>
 </body>
 
 </html>
