@@ -8,7 +8,7 @@
 
     // --- Configuration ---
     const PARTICLE_COUNT = 15000;
-    const BG_PARTICLE_COUNT = 8000;
+    const BG_PARTICLE_COUNT = 15000;
     const SHAPE_SCALE = 12;
 
     // --- DOM References ---
@@ -78,192 +78,61 @@
     })();
 
     // ============================================================
-    // 2. PARAMETRIC SHAPE GENERATORS
+    // 2. CANVAS PIXEL-SAMPLING SHAPE GENERATOR
     // ============================================================
 
-    function generateBottle(count) {
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const t = Math.random();
-            const angle = Math.random() * Math.PI * 2;
-            let x, y, z, radius;
+    function getPositionsFromCanvas(text, isIcon = false, yOffset = 0, scale = 1.0) {
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const c = document.createElement('canvas');
+        c.width = 800;
+        c.height = 800;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
 
-            if (t < 0.6) {
-                // Body cylinder
-                y = (t / 0.6) * 2.0 - 1.0; // -1 to 1
-                radius = 0.4 + Math.sin((y + 1) * Math.PI * 0.5) * 0.05;
-                x = Math.cos(angle) * radius;
-                z = Math.sin(angle) * radius;
-                // Fill interior sparsely
-                const fillRand = Math.random();
-                x *= fillRand * 0.3 + 0.7;
-                z *= fillRand * 0.3 + 0.7;
-            } else if (t < 0.85) {
-                // Neck taper
-                const nt = (t - 0.6) / 0.25;
-                y = 1.0 + nt * 0.8;
-                radius = 0.4 - nt * 0.2;
-                x = Math.cos(angle) * radius;
-                z = Math.sin(angle) * radius;
-            } else {
-                // Cap / top
-                const ct = (t - 0.85) / 0.15;
-                y = 1.8 + ct * 0.3;
-                radius = 0.2;
-                x = Math.cos(angle) * radius * (1.0 - ct * 0.3);
-                z = Math.sin(angle) * radius * (1.0 - ct * 0.3);
-            }
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 800, 800);
 
-            positions[i * 3] = x * SHAPE_SCALE;
-            positions[i * 3 + 1] = y * SHAPE_SCALE - SHAPE_SCALE * 0.5;
-            positions[i * 3 + 2] = z * SHAPE_SCALE;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        if (isIcon) {
+            ctx.font = '300px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+        } else {
+            ctx.font = '900 120px "Inter", sans-serif';
         }
-        return positions;
-    }
 
-    function generateSwimmer(count) {
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const part = Math.random();
-            let x, y, z;
-            const angle = Math.random() * Math.PI * 2;
-            const rand = Math.random();
+        ctx.fillText(text, 400, 400 + yOffset);
 
-            if (part < 0.15) {
-                // Head
-                const phi = Math.random() * Math.PI * 2;
-                const theta = Math.random() * Math.PI;
-                const r = 0.3 * Math.cbrt(Math.random());
-                x = r * Math.sin(theta) * Math.cos(phi) + 1.8;
-                y = r * Math.sin(theta) * Math.sin(phi) + 0.3;
-                z = r * Math.cos(theta);
-            } else if (part < 0.4) {
-                // Torso (horizontal ellipsoid for swimming pose)
-                const tLen = rand * 1.6;
-                const tRad = 0.25 * Math.sqrt(1 - Math.pow((tLen / 1.6 - 0.5) * 2, 2));
-                x = tLen;
-                y = Math.cos(angle) * tRad;
-                z = Math.sin(angle) * tRad;
-            } else if (part < 0.55) {
-                // Right arm (extended forward)
-                const aLen = rand * 1.2;
-                x = 1.4 + aLen * 0.8;
-                y = 0.5 + aLen * 0.4;
-                z = Math.cos(angle) * 0.08;
-            } else if (part < 0.7) {
-                // Left arm (back stroke position)
-                const aLen = rand * 1.0;
-                x = 0.6 - aLen * 0.5;
-                y = 0.3 + aLen * 0.5;
-                z = Math.cos(angle) * 0.08;
-            } else if (part < 0.85) {
-                // Right leg
-                const lLen = rand * 1.2;
-                x = -lLen * 0.3;
-                y = -0.15 - lLen * 0.15;
-                z = 0.15 + Math.cos(angle) * 0.07;
-            } else {
-                // Left leg
-                const lLen = rand * 1.2;
-                x = -lLen * 0.3;
-                y = -0.1 + lLen * 0.1;
-                z = -0.15 + Math.cos(angle) * 0.07;
+        const imgData = ctx.getImageData(0, 0, 800, 800).data;
+        const validPixels = [];
+
+        for (let y = 0; y < 800; y += 3) {
+            for (let x = 0; x < 800; x += 3) {
+                const r = imgData[(y * 800 + x) * 4];
+                const g = imgData[(y * 800 + x) * 4 + 1];
+                const b = imgData[(y * 800 + x) * 4 + 2];
+                if ((r + g + b) > 50) {
+                    validPixels.push({ x: (x - 400) * 0.1, y: -(y - 400) * 0.1 });
+                }
             }
-
-            positions[i * 3] = x * SHAPE_SCALE - SHAPE_SCALE * 0.8;
-            positions[i * 3 + 1] = y * SHAPE_SCALE;
-            positions[i * 3 + 2] = z * SHAPE_SCALE;
         }
-        return positions;
-    }
 
-    function generateCamera(count) {
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const part = Math.random();
-            let x, y, z;
-            const angle = Math.random() * Math.PI * 2;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            if (validPixels.length > 0) {
+                const p = validPixels[Math.floor(Math.random() * validPixels.length)];
+                
+                const depthNoise = (Math.random() - 0.5) * 4;
+                const scatterX = (Math.random() - 0.5) * 0.5;
+                const scatterY = (Math.random() - 0.5) * 0.5;
 
-            if (part < 0.45) {
-                // Camera body (box)
-                x = (Math.random() - 0.5) * 1.6;
-                y = (Math.random() - 0.5) * 1.0;
-                z = (Math.random() - 0.5) * 0.8;
-                // Push to surface
-                const face = Math.floor(Math.random() * 6);
-                if (face === 0) x = 0.8;
-                else if (face === 1) x = -0.8;
-                else if (face === 2) y = 0.5;
-                else if (face === 3) y = -0.5;
-                else if (face === 4) z = 0.4;
-                else z = -0.4;
-            } else if (part < 0.8) {
-                // Lens cylinder
-                const lLen = Math.random() * 0.9;
-                const lRad = 0.35 - lLen * 0.08;
-                x = 0.8 + lLen;
-                y = Math.cos(angle) * lRad;
-                z = Math.sin(angle) * lRad;
-            } else if (part < 0.9) {
-                // Viewfinder bump
-                x = (Math.random() - 0.5) * 0.4;
-                y = 0.5 + Math.random() * 0.35;
-                z = (Math.random() - 0.5) * 0.3;
+                positions[i * 3] = (p.x + scatterX) * SHAPE_SCALE * scale;
+                positions[i * 3 + 1] = (p.y + scatterY) * SHAPE_SCALE * scale;
+                positions[i * 3 + 2] = depthNoise * scale;
             } else {
-                // Flash hotshoe
-                x = -0.3 + Math.random() * 0.15;
-                y = 0.5 + Math.random() * 0.15;
-                z = (Math.random() - 0.5) * 0.2;
+                positions[i * 3] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
             }
-
-            positions[i * 3] = x * SHAPE_SCALE;
-            positions[i * 3 + 1] = y * SHAPE_SCALE;
-            positions[i * 3 + 2] = z * SHAPE_SCALE;
-        }
-        return positions;
-    }
-
-    function generateTelescope(count) {
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const part = Math.random();
-            let x, y, z;
-            const angle = Math.random() * Math.PI * 2;
-
-            if (part < 0.55) {
-                // Main tube (tilted 30 degrees)
-                const tLen = Math.random() * 3.0;
-                const tRad = 0.25 + (tLen / 3.0) * 0.15;
-                const fillRand = Math.random() * 0.3 + 0.7;
-                const localX = Math.cos(angle) * tRad * fillRand;
-                const localY = Math.sin(angle) * tRad * fillRand;
-                // Tilt along the x/y axis
-                x = tLen * Math.cos(0.5) + localX;
-                y = tLen * Math.sin(0.5) + localY;
-                z = Math.cos(angle) * tRad * 0.3;
-            } else if (part < 0.7) {
-                // Tripod leg 1
-                const legLen = Math.random() * 2.0;
-                x = -legLen * 0.5;
-                y = -legLen;
-                z = 0.3 + Math.random() * 0.05;
-            } else if (part < 0.85) {
-                // Tripod leg 2
-                const legLen = Math.random() * 2.0;
-                x = -legLen * 0.3;
-                y = -legLen;
-                z = -0.3 + Math.random() * 0.05;
-            } else {
-                // Tripod leg 3 (back leg)
-                const legLen = Math.random() * 2.0;
-                x = 0.3 + legLen * 0.2;
-                y = -legLen;
-                z = Math.random() * 0.05;
-            }
-
-            positions[i * 3] = x * SHAPE_SCALE * 0.7;
-            positions[i * 3 + 1] = y * SHAPE_SCALE * 0.7 + SHAPE_SCALE * 0.3;
-            positions[i * 3 + 2] = z * SHAPE_SCALE * 0.7;
         }
         return positions;
     }
@@ -573,13 +442,15 @@
     }
 
     // ============================================================
-    // 6. GENERATE ALL SHAPES
+    // 6. GENERATE ALL SHAPES (Via Canvas)
     // ============================================================
 
-    const bottleShape = generateBottle(PARTICLE_COUNT);
-    const swimmerShape = generateSwimmer(PARTICLE_COUNT);
-    const cameraShape = generateCamera(PARTICLE_COUNT);
-    const telescopeShape = generateTelescope(PARTICLE_COUNT);
+    // Use emoji for perfect silhouettes across all devices
+    const bottleShape = getPositionsFromCanvas('🍼', true, 0, 1.2);
+    const poolShape = getPositionsFromCanvas('🌊', true, 0, 1.5);
+    const cameraShape = getPositionsFromCanvas('📸', true, 0, 1.3);
+    const telescopeShape = getPositionsFromCanvas('🔭🪐', true, 0, 1.2);
+    const textShape = getPositionsFromCanvas('Steve Wong', false, 0, 1.2);
 
     // ============================================================
     // 7. ANIMATION LOOP
@@ -621,80 +492,89 @@
     tl.add(() => updatePositionsToShape(bottleShape))
         .to(material.uniforms.uProgress, {
             value: 1.0,
-            duration: 2.5,
+            duration: 2.0,
             ease: "power2.inOut"
         })
-        .to(camera.position, { z: 35, duration: 2.5, ease: "power2.inOut" }, "<");
+        .to(camera.position, { z: 45, duration: 2.0, ease: "power2.inOut" }, "<");
 
-    // Hold on bottle
-    tl.to({}, { duration: 1.0 });
+    tl.to({}, { duration: 0.8 }); // Hold
 
-    // --- Scene 2: Bottle → Swimmer (color shifts to green) ---
-    tl.add(() => {
-        updatePositionsToShape(swimmerShape);
-    })
+    // --- Scene 2: Bottle → Swimming Pool (Waves) (color shifts to green) ---
+    tl.add(() => updatePositionsToShape(poolShape))
         .to(material.uniforms.uColor.value, {
             r: 0.247, g: 0.725, b: 0.314,
             duration: 1.5, ease: "power1.inOut"
         })
         .to(material.uniforms.uProgress, {
             value: 1.0,
-            duration: 2.5,
+            duration: 2.0,
             ease: "power2.inOut"
         }, "<")
-        .to(camera.position, { z: 40, y: -3, duration: 2.5, ease: "power2.inOut" }, "<");
+        .to(camera.position, { z: 50, y: -2, duration: 2.0, ease: "power2.inOut" }, "<");
 
-    // Hold on swimmer
-    tl.to({}, { duration: 1.0 });
+    tl.to({}, { duration: 0.8 }); // Hold
 
-    // --- Scene 3: Swimmer → Camera (color back to blue, zoom into lens) ---
-    tl.add(() => {
-        updatePositionsToShape(cameraShape);
-    })
+    // --- Scene 3: Pool → Camera (color back to blue, zoom into lens) ---
+    tl.add(() => updatePositionsToShape(cameraShape))
         .to(material.uniforms.uColor.value, {
             r: 0.345, g: 0.651, b: 1.0,
             duration: 1.5, ease: "power1.inOut"
         })
         .to(material.uniforms.uProgress, {
             value: 1.0,
-            duration: 2.5,
+            duration: 2.0,
             ease: "power2.inOut"
         }, "<")
-        .to(camera.position, { z: 30, y: 0, duration: 2.5, ease: "power2.inOut" }, "<");
+        .to(camera.position, { z: 40, y: 0, duration: 2.0, ease: "power2.inOut" }, "<");
 
-    // Zoom into camera lens
-    tl.to(camera.position, { z: 8, x: 8, duration: 2.0, ease: "power4.in" });
+    tl.to(camera.position, { z: 12, x: 8, duration: 1.5, ease: "power4.in" }); // Zoom into lens
 
-    // --- Scene 4: Camera → Telescope (snap back, purple color) ---
-    tl.add(() => {
-        updatePositionsToShape(telescopeShape);
-    })
+    // --- Scene 4: Camera → Telescope & Planet (snap back, purple color) ---
+    tl.add(() => updatePositionsToShape(telescopeShape))
         .to(material.uniforms.uColor.value, {
             r: 0.737, g: 0.549, b: 1.0,
             duration: 1.5, ease: "power1.inOut"
         })
         .to(camera.position, {
-            z: 55, x: 0, y: 5,
+            z: 55, x: 0, y: 3,
             duration: 2.0,
             ease: "elastic.out(1, 0.6)"
         }, "<")
         .to(material.uniforms.uProgress, {
             value: 1.0,
-            duration: 2.5,
+            duration: 2.0,
             ease: "power2.inOut"
         }, "<");
 
-    // Hold on telescope
-    tl.to({}, { duration: 1.2 });
+    tl.to({}, { duration: 0.8 }); // Hold
 
-    // --- Scene 5: Disperse and zoom out to reveal portfolio ---
+    // --- Scene 5: Telescope → Steve Wong Text (bright blue) ---
+    tl.add(() => updatePositionsToShape(textShape))
+        .to(material.uniforms.uColor.value, {
+            r: 0.345, g: 0.651, b: 1.0,
+            duration: 1.5, ease: "power1.inOut"
+        })
+        .to(material.uniforms.uProgress, {
+            value: 1.0,
+            duration: 2.0,
+            ease: "power2.inOut"
+        }, "<")
+        .to(camera.position, {
+            z: 65, y: 0,
+            duration: 2.0,
+            ease: "power2.inOut"
+        }, "<");
+
+    tl.to({}, { duration: 1.2 }); // Hold on text
+
+    // --- Scene 6: Disperse and zoom out to reveal portfolio ---
     tl.to(material.uniforms.uProgress, {
         value: 0.0,
         duration: 1.5,
         ease: "power2.in"
     })
         .to(material.uniforms.uDriftStrength, {
-            value: 3.0,
+            value: 4.0,
             duration: 1.5,
             ease: "power2.in"
         }, "<")
