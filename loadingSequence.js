@@ -113,9 +113,9 @@
         return arr;
     }
 
-
-    // 2. Image Pixel Sampler for Eagle Scout Logo
-    function generatePointsFromImage(imageSrc, particleCount, scale = 1.0) {
+    // 2. Image Pixel Sampler (supports standard color filter + edge detection mode)
+    function generatePointsFromImage(imageSrc, particleCount, scale = 1.0, options = {}) {
+        const { edgeDetect = false, edgeThreshold = 15 } = options;
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
@@ -125,25 +125,46 @@
                 const c = document.createElement('canvas');
                 const ctx = c.getContext('2d');
 
-                const width = 150;
-                const height = (img.height / img.width) * width;
+                const width = 200;
+                const height = Math.round((img.height / img.width) * width);
                 c.width = width;
                 c.height = height;
 
                 ctx.drawImage(img, 0, 0, width, height);
                 const imageData = ctx.getImageData(0, 0, width, height).data;
 
+                // Helper: get luminance at pixel (x, y)
+                function lum(px, py) {
+                    if (px < 0 || px >= width || py < 0 || py >= height) return 0;
+                    const idx = (py * width + px) * 4;
+                    return 0.299 * imageData[idx] + 0.587 * imageData[idx + 1] + 0.114 * imageData[idx + 2];
+                }
+
                 const validPoints = [];
 
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
-                        const index = (y * width + x) * 4;
-                        const r = imageData[index];
-                        const g = imageData[index + 1];
-                        const b = imageData[index + 2];
-                        const a = imageData[index + 3];
+                        let isValid = false;
 
-                        if (a > 10 && (r < 245 || g < 245 || b < 245)) {
+                        if (edgeDetect) {
+                            // Sobel-like gradient magnitude for edge detection
+                            const gx = -lum(x-1,y-1) - 2*lum(x-1,y) - lum(x-1,y+1)
+                                       + lum(x+1,y-1) + 2*lum(x+1,y) + lum(x+1,y+1);
+                            const gy = -lum(x-1,y-1) - 2*lum(x,y-1) - lum(x+1,y-1)
+                                       + lum(x-1,y+1) + 2*lum(x,y+1) + lum(x+1,y+1);
+                            const mag = Math.sqrt(gx * gx + gy * gy);
+                            isValid = mag > edgeThreshold;
+                        } else {
+                            // Standard: filter out transparent or pure white pixels
+                            const idx = (y * width + x) * 4;
+                            const r = imageData[idx];
+                            const g = imageData[idx + 1];
+                            const b = imageData[idx + 2];
+                            const a = imageData[idx + 3];
+                            isValid = a > 10 && (r < 245 || g < 245 || b < 245);
+                        }
+
+                        if (isValid) {
                             let pX = (x - width / 2) * 0.22 * scale;
                             let pY = -(y - height / 2) * 0.22 * scale;
                             validPoints.push({ x: pX, y: pY });
@@ -163,9 +184,9 @@
                 resolve(arr);
             };
 
-            // Fallback if image fails to load — use a simple circle
+            // Fallback if image fails to load
             img.onerror = () => {
-                console.warn('Eagle Scout image not found, using fallback shape');
+                console.warn(`Image "${imageSrc}" not found, using fallback shape`);
                 const arr = new Float32Array(particleCount * 3);
                 for (let i = 0; i < particleCount; i++) {
                     const theta = Math.random() * Math.PI * 2;
@@ -600,7 +621,7 @@
 
         // Await the image-sampled shapes
         const eagleShape = await generatePointsFromImage('boyscout.jpeg', PARTICLE_COUNT, 1.0);
-        const telescopeShape = await generatePointsFromImage('telescope 3d.jpg', PARTICLE_COUNT, 1.0);
+        const telescopeShape = await generatePointsFromImage('telescope 3d.jpg', PARTICLE_COUNT, 1.0, { edgeDetect: true, edgeThreshold: 15 });
 
         // ============================================================
         // 7. ANIMATION LOOP
