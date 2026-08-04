@@ -9,9 +9,6 @@
     <img src="https://img.shields.io/badge/Live_Experience-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Site">
   </a>
   <a href="#">
-    <img src="https://img.shields.io/badge/Figma_Prototype-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma">
-  </a>
-  <a href="#">
     <img src="https://img.shields.io/badge/Next.js_Stack-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Tech Stack">
   </a>
 </p>
