@@ -32,11 +32,11 @@ Every interaction in this architecture was deliberately crafted to provide immed
 
 <br>
 
-> *[Placeholder: Embed GIF of Vector Cursor & Magnetic Dock Interaction Here]*
+> ![Vector Cursor & Magnetic Dock Interaction](./assets/cursor_dock_demo.webp)
 
 <br>
 
-> *[Placeholder: Embed GIF of 3D Project Card Tilt Effect Here]*
+> ![3D Project Card Tilt Effect](./assets/spatial_cards_demo.webp)
 
 <br>
 
