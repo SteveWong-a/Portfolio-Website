@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align="center">
+  
+# Steve Wong | Personal Portfolio 🚀
 
-## Getting Started
+**Incoming UIUC Computer Engineering Freshman & Full-Stack AI Developer**
 
-First, run the development server:
+[![Live Demo](https://img.shields.io/badge/View_Live_Site-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://steve-wong.vercel.app/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+</div>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🌌 About This Project
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This repository contains the source code for my interactive, 3D-rendered personal portfolio. Built with a dual-layer architecture, it combines high-performance WebGL graphics with a sleek, glassmorphic UI to showcase my background in software engineering, astrophysics research, and data science. 
 
-## Learn More
+### 🛠 Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+*   **Framework:** [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+*   **Styling:** [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/) (KokonutUI & Bklit UI patterns)
+*   **3D / Animation:** [![Three.js](https://img.shields.io/badge/Three.js-black?style=flat-square&logo=three.js&logoColor=white)](https://threejs.org/) Framer Motion
+*   **Deployment:** [![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com/)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 👨‍💻 Featured Experience & Projects
 
-## Deploy on Vercel
+*   **Data Analyst @ Readyfly:** Designing data cleanup algorithms and utilizing Python scripts to automate processing for large job listing datasets.
+*   **NASA & GMU Astrophysics Research:** Authored research on ground-based light curve follow-up observations of TESS exoplanet objects.
+*   **Machine Learning & Data Science:** Developed AI object recognition models and data analysis pipelines using Python, CNNs, and YOLO architectures.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Running Locally
+
+To explore the dual-system particle architecture and Next.js setup on your local machine:
+
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/yourusername/Portfolio-Website.git](https://github.com/yourusername/Portfolio-Website.git)
