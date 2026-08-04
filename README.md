@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://via.placeholder.com/1920x1080/050505/ffffff?text=16:9+Hero+Banner+Placeholder" alt="Hero Banner" width="100%">
-</p>
-
 <h1 align="center">Steve Wong | Digital Portfolio</h1>
 
 <p align="center">
