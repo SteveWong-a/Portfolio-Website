@@ -8,11 +8,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 
-export default function ThreeBackground() {
+export default function ThreeBackground({ isStarted }) {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const skipBtnRef = useRef(null);
     const [isVisible, setIsVisible] = useState(true);
+    const tlRef = useRef(null);
+
+    useEffect(() => {
+        if (isStarted && tlRef.current) {
+            tlRef.current.play();
+        }
+    }, [isStarted]);
 
     useEffect(() => {
         if (!canvasRef.current || !containerRef.current) return;
@@ -438,6 +445,7 @@ export default function ThreeBackground() {
         uniform float uProgress;
         uniform float uDriftStrength;
         uniform float uScale;
+        uniform float uTransitX;
         attribute vec3 aTarget;
         attribute float aRandom;
 
@@ -457,9 +465,9 @@ export default function ThreeBackground() {
             float ny = snoise(pos * noiseScale + vec3(0.0, uTime * timeScale, 100.0));
             float nz = snoise(pos * noiseScale + vec3(0.0, 0.0, uTime * timeScale + 200.0));
 
-            pos.x += nx * 8.0 * driftFactor;
-            pos.y += ny * 8.0 * driftFactor;
-            pos.z += nz * 4.0 * driftFactor;
+            pos.x += nx * 12.0 * driftFactor;
+            pos.y += ny * 12.0 * driftFactor;
+            pos.z += nz * 6.0 * driftFactor;
 
             // Subtle continuous breathing even when formed
             float breathe = snoise(pos * 0.1 + uTime * 0.15) * 0.5 * uProgress;
@@ -468,7 +476,18 @@ export default function ThreeBackground() {
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
             // Size attenuation
+                        // Size attenuation
             float size = mix(2.0, 3.5, uProgress);
+            
+            // Dynamic Exoplanet Transit Cutout
+            // If the point is in the front hemisphere and inside the moving planet radius
+            if (pos.z > -2.0) {
+                float dist2D = distance(pos.xy, vec2(uTransitX, -2.0));
+                if (dist2D < 5.0) {
+                    size = 0.0;
+                }
+            }
+
             gl_PointSize = size * (50.0 / -mvPosition.z);
 
             gl_Position = projectionMatrix * mvPosition;
@@ -513,7 +532,8 @@ export default function ThreeBackground() {
             uTime: { value: 0 },
             uProgress: { value: 0.0 },
             uDriftStrength: { value: 1.0 },
-            uScale: { value: 1.0 },
+            uScale: { value: 1.5 },
+            uTransitX: { value: -50.0 },
             uColor: { value: new THREE.Color(0x58a6ff) }
         },
         vertexShader: vertexShader,
@@ -566,9 +586,9 @@ export default function ThreeBackground() {
             float ny = snoise(pos * noiseScale + vec3(0.0, uTime * timeScale, 150.0));
             float nz = snoise(pos * noiseScale + vec3(0.0, 0.0, uTime * timeScale + 250.0));
 
-            pos.x += nx * 3.0;
-            pos.y += ny * 3.0;
-            pos.z += nz * 1.5;
+            pos.x += nx * 6.0;
+            pos.y += ny * 6.0;
+            pos.z += nz * 3.0;
 
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
@@ -628,6 +648,26 @@ export default function ThreeBackground() {
     // 6. GENERATE ALL SHAPES (async for image loading)
     // ============================================================
 
+            function generateTransit(particleCount) {
+        const arr = new Float32Array(particleCount * 3);
+        const starRadius = 16;
+        
+        let i = 0;
+        while (i < particleCount) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = Math.pow(Math.random(), 0.5) * starRadius;
+            
+            arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            arr[i * 3 + 2] = r * Math.cos(phi);
+            i++;
+        }
+        return arr;
+    }
+
     async function initShapesAndTimeline() {
 
         const bottleShape = generateBottle(PARTICLE_COUNT);
@@ -636,7 +676,7 @@ export default function ThreeBackground() {
 
         // Await the image-sampled shapes
         const eagleShape = await generatePointsFromImage('boyscout.jpeg', PARTICLE_COUNT, 1.0);
-        const telescopeShape = await generatePointsFromImage('telescope 3d.jpg', PARTICLE_COUNT, 1.0, { edgeDetect: true, edgeThreshold: 15 });
+        const transitShape = generateTransit(PARTICLE_COUNT);
 
         // ============================================================
         // 7. ANIMATION LOOP
@@ -672,8 +712,10 @@ export default function ThreeBackground() {
         // ============================================================
 
         const tl = gsap.timeline({
+            paused: true,
             delay: 0.5
         });
+        tlRef.current = tl;
 
         // We start with a bit of drift, then settle
         material.uniforms.uDriftStrength.value = 1.0;
@@ -714,7 +756,7 @@ export default function ThreeBackground() {
             updatePositionsToShape(cvBoxShape);
             material.uniforms.uDriftStrength.value = 15.0;
         })
-            .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+            .to(material.uniforms.uScale, { value: 1.5, duration: 0.5, ease: "power4.out" })
             .to(material.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power2.out" }, "<")
             .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 1.5, ease: "power2.out" }, "<")
             .to(camera.position, { z: 40, y: 0, duration: 1.5, ease: "power2.out" }, "<");
@@ -725,22 +767,27 @@ export default function ThreeBackground() {
         tl.to(material.uniforms.uDriftStrength, { value: 10.0, duration: 1.0, ease: "power2.in" })
             .to(material.uniforms.uColor.value, { r: 0.73, g: 0.54, b: 1.0, duration: 1.0 }, "<");
 
-        tl.add(() => updatePositionsToShape(telescopeShape))
+                tl.add(() => {
+            updatePositionsToShape(transitShape);
+            material.uniforms.uTransitX.value = -20.0;
+        })
             .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" })
             .to(material.uniforms.uDriftStrength, { value: 0.1, duration: 2.0, ease: "power2.out" }, "<")
-            .to(camera.position, { z: 50, x: 0, y: 0, duration: 2.0, ease: "elastic.out(1, 0.5)" }, "<");
+            .to(camera.position, { z: 50, x: 0, y: 0, duration: 2.0, ease: "elastic.out(1, 0.5)" }, "<")
+            .to(material.uniforms.uTransitX, { value: 20.0, duration: 3.5, ease: "linear" }, "<");
 
-        tl.to({}, { duration: 1.5 }); // Hold
+        tl.to({}, { duration: 0.0 }); // Hold
 
         // --- Transition 4 (Implode → Explode): Telescope → Steve Wong Text — Blue ---
         tl.to(material.uniforms.uScale, { value: 0.01, duration: 1.0, ease: "power3.in" })
             .to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.0 }, "<");
 
-        tl.add(() => {
+                tl.add(() => {
             updatePositionsToShape(textShape);
             material.uniforms.uDriftStrength.value = 12.0;
+            material.uniforms.uTransitX.value = -1000.0; // Hide the transit hole
         })
-            .to(material.uniforms.uScale, { value: 1.0, duration: 0.5, ease: "power4.out" })
+            .to(material.uniforms.uScale, { value: 1.5, duration: 0.5, ease: "power4.out" })
             .to(material.uniforms.uProgress, { value: 1.0, duration: 2.0, ease: "power2.out" }, "<")
             .to(material.uniforms.uDriftStrength, { value: 0.05, duration: 2.0, ease: "power2.out" }, "<")
             .to(camera.position, { z: 65, y: 0, duration: 2.0, ease: "power2.out" }, "<");
@@ -795,7 +842,9 @@ export default function ThreeBackground() {
             opacity: 0,
             duration: 0.8,
             ease: "power2.inOut",
-            onComplete: cleanup
+            onComplete: () => {
+                cleanup();
+            }
         }, "-=0.5");
 
         // ============================================================
@@ -835,7 +884,10 @@ export default function ThreeBackground() {
                     opacity: 0,
                     duration: 0.6,
                     ease: "power2.out",
-                    onComplete: cleanup
+                    onComplete: () => {
+                        window.dispatchEvent(new CustomEvent('start-scramble'));
+                        cleanup();
+                    }
                 });
             });
         }

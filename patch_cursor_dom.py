@@ -1,4 +1,6 @@
-"use client";
+import re
+
+cursor_content = """"use client";
 
 import { useEffect, useRef } from 'react';
 
@@ -41,7 +43,7 @@ export default function CursorSpotlight() {
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${mouse.x}px, ${mouse.y}px, 0) translate(-50%, -50%) scale(${currentScale})`;
         // Toggle opacity/color for the "translucent white circle" effect on hover
-        dotRef.current.style.backgroundColor = isHovering ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 1)';
+        dotRef.current.style.backgroundColor = isHovering ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 1)';
       }
 
       // 2. Update particle trail
@@ -94,7 +96,7 @@ export default function CursorSpotlight() {
       {/* Background Spotlight */}
       <div 
         ref={spotlightRef}
-        className="fixed inset-0 pointer-events-none z-[99998]"
+        className="fixed inset-0 pointer-events-none z-[9998]"
       />
       
       {/* 20 Trail Particles */}
@@ -102,7 +104,7 @@ export default function CursorSpotlight() {
         <div
           key={i}
           ref={el => trailRefs.current[i] = el}
-          className="fixed top-0 left-0 w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-[99999]"
+          className="fixed top-0 left-0 w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-[9999]"
           style={{ mixBlendMode: 'difference', opacity: 0 }}
         />
       ))}
@@ -110,9 +112,13 @@ export default function CursorSpotlight() {
       {/* Lead Cursor (Zero Delay) */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 w-1 h-1 bg-white rounded-full pointer-events-none z-[100000]"
+        className="fixed top-0 left-0 w-1 h-1 bg-white rounded-full pointer-events-none z-[10000]"
         style={{ mixBlendMode: 'difference' }}
       />
     </>
   );
 }
+"""
+
+with open("src/components/CursorSpotlight.jsx", "w") as f:
+    f.write(cursor_content)

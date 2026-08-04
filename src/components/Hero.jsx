@@ -1,11 +1,13 @@
+import TextScramble from "./TextScramble";
+
 export default function Hero() {
   return (
     <header className="pt-40 pb-20 max-w-3xl hero scroll-reveal relative z-10">
       <div className="inline-flex items-center gap-2 bg-accent-primary/10 text-accent-primary px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-6 border border-accent-primary/20 shadow-[0_0_10px_rgba(88,166,255,0.2)]">
         <i className="fa-solid fa-graduation-cap"></i> Incoming Computer Science @ UIUC
       </div>
-      <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-        Hi, I'm <span className="text-gradient">Steve Wong</span>.
+      <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
+        Hi, I'm <TextScramble text="Steve Wong" className="text-gradient" />.
       </h1>
       <p className="text-lg text-text-muted mb-10 leading-relaxed font-light">
         Passionate about Artificial Intelligence, Computer Vision, and Full-Stack Software Engineering.

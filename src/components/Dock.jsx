@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from 'motion/react';
-import { useState } from 'react';
+import { motion, useMotionValue, useSpring } from 'motion/react';
+import { useState, useRef } from 'react';
+import useSound from 'use-sound';
 
 const dockItems = [
   { id: 'home', icon: 'fa-solid fa-house', label: 'Home', href: '#' },
@@ -12,8 +13,81 @@ const dockItems = [
   { id: 'contact', icon: 'fa-solid fa-envelope', label: 'Contact', href: '#contact' },
 ];
 
+function DockItem({ item, index, hoveredIndex, setHoveredIndex, playTick }) {
+  const ref = useRef(null);
+  
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 20 });
+  const springY = useSpring(y, { stiffness: 300, damping: 20 });
+
+  const isHovered = hoveredIndex === index;
+  const isNeighbor = hoveredIndex !== null && Math.abs(hoveredIndex - index) === 1;
+
+  let scale = 1;
+  if (isHovered) scale = 1.4;
+  else if (isNeighbor) scale = 1.15;
+
+  const handleMouseMove = (e) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distanceX = e.clientX - centerX;
+    const distanceY = e.clientY - centerY;
+    
+    // Magnetic pull: translates the icon inside the button bounds
+    x.set(distanceX * 0.3);
+    y.set(distanceY * 0.3);
+  };
+
+  const handleMouseEnter = () => {
+    setHoveredIndex(index);
+    playTick();
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.a
+      ref={ref}
+      href={item.href}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ scale }}
+      transition={{ type: "spring", bounce: 0.5, visualDuration: 0.3 }}
+      className="relative w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors border border-transparent hover:border-white/20 group"
+    >
+      {/* Icon with magnetic translation */}
+      <motion.div style={{ x: springX, y: springY }} className="flex items-center justify-center w-full h-full">
+        <i className={`${item.icon} text-lg text-text-main group-hover:text-white transition-colors`}></i>
+      </motion.div>
+      
+      {/* Tooltip */}
+      {isHovered && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="absolute -top-12 px-3 py-1.5 bg-card-bg border border-card-border rounded-md text-xs font-medium text-white whitespace-nowrap shadow-xl"
+        >
+          {item.label}
+        </motion.div>
+      )}
+    </motion.a>
+  );
+}
+
 export default function Dock() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  
+  // use-sound integration
+  const [playTick] = useSound('/sounds/tick.mp3', { volume: 0.15, soundEnabled: !isMuted });
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
@@ -23,42 +97,28 @@ export default function Dock() {
         transition={{ type: "spring", bounce: 0.3, duration: 0.8, delay: 0.5 }}
         className="pointer-events-auto bg-white/5 backdrop-blur-xl border border-white/10 p-3 rounded-full flex items-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
       >
-        {dockItems.map((item, index) => {
-          const isHovered = hoveredIndex === index;
-          const isNeighbor = hoveredIndex !== null && Math.abs(hoveredIndex - index) === 1;
-
-          // Calculate scale based on hover proximity (Apple Dock effect)
-          let scale = 1;
-          if (isHovered) scale = 1.4;
-          else if (isNeighbor) scale = 1.15;
-
-          return (
-            <motion.a
-              key={item.id}
-              href={item.href}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              animate={{ scale }}
-              transition={{ type: "spring", bounce: 0.5, visualDuration: 0.3 }}
-              className="relative w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors border border-transparent hover:border-white/20 group"
-            >
-              <i className={`${item.icon} text-lg text-text-main group-hover:text-white transition-colors`}></i>
-              
-              {/* Tooltip */}
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  className="absolute -top-12 px-3 py-1.5 bg-card-bg border border-card-border rounded-md text-xs font-medium text-white whitespace-nowrap shadow-xl"
-                >
-                  {item.label}
-                </motion.div>
-              )}
-            </motion.a>
-          );
-        })}
+        {dockItems.map((item, index) => (
+          <DockItem 
+            key={item.id} 
+            item={item} 
+            index={index} 
+            hoveredIndex={hoveredIndex} 
+            setHoveredIndex={setHoveredIndex} 
+            playTick={playTick} 
+          />
+        ))}
         
         <div className="w-[1px] h-8 bg-white/20 mx-2"></div>
+
+        {/* Volume Toggle */}
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsMuted(!isMuted)}
+          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-text-main hover:text-white transition-colors"
+        >
+          <i className={`fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'} text-lg`}></i>
+        </motion.button>
         
         {/* Resume Download Dropdown / Button in Dock */}
         <div className="relative group pointer-events-auto">
