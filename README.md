@@ -1,12 +1,14 @@
-<div align="center">
-  
-# Steve Wong | Personal Portfolio 🚀
+<h1 align="center">Steve Wong | Personal Portfolio 🚀</h1>
 
-**Incoming UIUC Computer Engineering Freshman & Full-Stack AI Developer**
+<p align="center">
+  <strong>Incoming UIUC Computer Engineering Freshman & Full-Stack AI Developer</strong>
+</p>
 
-[![Live Demo](https://img.shields.io/badge/View_Live_Site-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://steve-wong.vercel.app/)
-
-</div>
+<p align="center">
+  <a href="https://steve-wong.vercel.app/">
+    <img src="https://img.shields.io/badge/View_Live_Site-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+  </a>
+</p>
 
 ---
 
