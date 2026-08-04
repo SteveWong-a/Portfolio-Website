@@ -2,6 +2,7 @@
 // Antigravity Slope Field — Three.js Loading Sequence
 // A GPU-accelerated particle morphing intro for Steve Wong's portfolio
 // ============================================================
+import { animate, stagger } from "motion";
 
 (function () {
     'use strict';
@@ -776,12 +777,13 @@
         });
 
         // Crossfade the overlay out right as it perfectly lands
-        tl.to(container, {
-            opacity: 0,
-            duration: 0.8,
-            ease: "power2.inOut",
-            onComplete: cleanup
-        }, "-=0.5");
+        tl.call(() => {
+            animate(
+                container, 
+                { opacity: 0 }, 
+                { duration: 0.8, ease: "easeInOut" }
+            ).then(cleanup);
+        }, null, "-=0.5");
 
         // ============================================================
         // 9. REVEAL PORTFOLIO & CLEANUP
@@ -804,6 +806,26 @@
 
             // Remove canvas from DOM
             if (canvas.parentNode) canvas.remove();
+
+            // --- HERO SECTION ENTRY ANIMATION VIA MOTION ---
+            const heroElements = document.querySelectorAll('.hero.scroll-reveal, .hero .scroll-reveal');
+            heroElements.forEach(el => {
+                el.style.opacity = 0; // Ensure hidden before animate
+                el.style.willChange = "opacity, transform"; 
+            });
+            
+            animate(
+                heroElements,
+                { opacity: 1, y: [30, 0], scale: [0.95, 1] },
+                { 
+                    type: "spring", 
+                    bounce: 0.2, 
+                    visualDuration: 0.6,
+                    delay: stagger(0.1, { startDelay: 0.1 })
+                }
+            ).then(() => {
+                heroElements.forEach(el => el.style.willChange = "auto");
+            });
         }
 
         // ============================================================
@@ -813,12 +835,11 @@
         if (skipBtn) {
             skipBtn.addEventListener('click', () => {
                 tl.kill();
-                gsap.to(container, {
-                    opacity: 0,
-                    duration: 0.6,
-                    ease: "power2.out",
-                    onComplete: cleanup
-                });
+                animate(
+                    container,
+                    { opacity: 0 },
+                    { duration: 0.6, ease: "easeOut" }
+                ).then(cleanup);
             });
         }
 
