@@ -2,10 +2,24 @@
 // Antigravity Slope Field — Three.js Loading Sequence
 // A GPU-accelerated particle morphing intro for Steve Wong's portfolio
 // ============================================================
-import { animate, stagger } from "motion";
 
-(function () {
-    'use strict';
+"use client";
+import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { gsap } from 'gsap';
+
+export default function ThreeBackground() {
+    const canvasRef = useRef(null);
+    const containerRef = useRef(null);
+    const skipBtnRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(true);
+
+    useEffect(() => {
+        if (!canvasRef.current || !containerRef.current) return;
+        
+        let animationId;
+        let tl;
+
 
     // --- Configuration ---
     const PARTICLE_COUNT = 20000;
@@ -13,9 +27,9 @@ import { animate, stagger } from "motion";
     const SHAPE_SCALE = 12;
 
     // --- DOM References ---
-    const container = document.getElementById('loading-canvas-container');
-    const canvas = document.getElementById('antigravity-canvas');
-    const skipBtn = document.getElementById('skip-intro');
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    const skipBtn = skipBtnRef.current;
 
     if (!container || !canvas) return;
 
@@ -149,10 +163,10 @@ import { animate, stagger } from "motion";
 
                         if (edgeDetect) {
                             // Sobel-like gradient magnitude for edge detection
-                            const gx = -lum(x-1,y-1) - 2*lum(x-1,y) - lum(x-1,y+1)
-                                       + lum(x+1,y-1) + 2*lum(x+1,y) + lum(x+1,y+1);
-                            const gy = -lum(x-1,y-1) - 2*lum(x,y-1) - lum(x+1,y-1)
-                                       + lum(x-1,y+1) + 2*lum(x,y+1) + lum(x+1,y+1);
+                            const gx = -lum(x - 1, y - 1) - 2 * lum(x - 1, y) - lum(x - 1, y + 1)
+                                + lum(x + 1, y - 1) + 2 * lum(x + 1, y) + lum(x + 1, y + 1);
+                            const gy = -lum(x - 1, y - 1) - 2 * lum(x, y - 1) - lum(x + 1, y - 1)
+                                + lum(x - 1, y + 1) + 2 * lum(x, y + 1) + lum(x + 1, y + 1);
                             const mag = Math.sqrt(gx * gx + gy * gy);
                             isValid = mag > edgeThreshold;
                         } else {
@@ -777,54 +791,36 @@ import { animate, stagger } from "motion";
         });
 
         // Crossfade the overlay out right as it perfectly lands
-        tl.call(() => {
-            animate(
-                container, 
-                { opacity: 0 }, 
-                { duration: 0.8, ease: "easeInOut" }
-            ).then(cleanup);
-        }, null, "-=0.5");
+        tl.to(container, {
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.inOut",
+            onComplete: cleanup
+        }, "-=0.5");
 
         // ============================================================
         // 9. REVEAL PORTFOLIO & CLEANUP
         // ============================================================
 
         function cleanup() {
-            container.style.display = 'none';
+            // Push container to the background and make it transparent to reveal page
+            if (container) {
+                container.style.zIndex = "-30";
+                container.style.backgroundColor = "transparent";
+                gsap.to(container, { opacity: 1, duration: 0.5 });
+            }
+            if (skipBtn) {
+                skipBtn.style.display = "none";
+            }
 
-            // Stop the animation loop
-            if (animationId) cancelAnimationFrame(animationId);
-
-            // Dispose Three.js resources
-            geometry.dispose();
-            material.dispose();
-            bgGeometry.dispose();
-            bgMaterial.dispose();
-            renderer.dispose();
-            scene.remove(particles);
-            scene.remove(bgParticles);
-
-            // Remove canvas from DOM
-            if (canvas.parentNode) canvas.remove();
-
-            // --- HERO SECTION ENTRY ANIMATION VIA MOTION ---
-            const heroElements = document.querySelectorAll('.hero.scroll-reveal, .hero .scroll-reveal');
-            heroElements.forEach(el => {
-                el.style.opacity = 0; // Ensure hidden before animate
-                el.style.willChange = "opacity, transform"; 
-            });
-            
-            animate(
-                heroElements,
-                { opacity: 1, y: [30, 0], scale: [0.95, 1] },
-                { 
-                    type: "spring", 
-                    bounce: 0.2, 
-                    visualDuration: 0.6,
-                    delay: stagger(0.1, { startDelay: 0.1 })
-                }
-            ).then(() => {
-                heroElements.forEach(el => el.style.willChange = "auto");
+            // Import Motion scroll and map page scroll progress to camera
+            import('motion').then(({ scroll }) => {
+                scroll((progress) => {
+                    // progress is 0 to 1
+                    // Move the camera down and tilt it as the user scrolls
+                    camera.position.y = -(progress * 20); 
+                    camera.rotation.x = progress * (Math.PI / 4); 
+                });
             });
         }
 
@@ -835,23 +831,55 @@ import { animate, stagger } from "motion";
         if (skipBtn) {
             skipBtn.addEventListener('click', () => {
                 tl.kill();
-                animate(
-                    container,
-                    { opacity: 0 },
-                    { duration: 0.6, ease: "easeOut" }
-                ).then(cleanup);
+                gsap.to(container, {
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: "power2.out",
+                    onComplete: cleanup
+                });
             });
         }
 
-        window.addEventListener('resize', () => {
+        const handleResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            if (animationId) cancelAnimationFrame(animationId);
+            window.removeEventListener('resize', handleResize);
+            if (tl) tl.kill();
+            geometry.dispose();
+            material.dispose();
+            bgGeometry.dispose();
+            bgMaterial.dispose();
+            renderer.dispose();
+            scene.remove(particles);
+            scene.remove(bgParticles);
+        };
 
     } // end of initShapesAndTimeline
 
     // Start the async initialization
-    initShapesAndTimeline();
+    const cleanupFnPromise = initShapesAndTimeline();
 
-})();
+    return () => {
+        cleanupFnPromise.then(cleanupFn => {
+            if (cleanupFn) cleanupFn();
+        });
+    };
+    }, []);
+
+    if (!isVisible) return null;
+
+    return (
+        <div ref={containerRef} className="fixed inset-0 z-[9999] bg-[#0d1117]">
+            <canvas ref={canvasRef} className="w-full h-full block" />
+            <button ref={skipBtnRef} className="absolute bottom-5 right-5 z-[10000] bg-transparent border border-accent-primary text-accent-primary px-4 py-2 rounded font-inter text-sm cursor-pointer transition-colors hover:bg-accent-primary/15">
+                Skip Intro
+            </button>
+        </div>
+    );
+}

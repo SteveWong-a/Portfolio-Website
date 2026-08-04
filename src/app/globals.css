@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg-color: #0d1117;
+  --color-card-bg: rgba(22, 27, 34, 0.75);
+  --color-card-border: rgba(48, 54, 61, 0.8);
+  --color-accent-primary: #58a6ff;
+  --color-accent-secondary: #bc8cff;
+  --color-accent-green: #3fb950;
+  
+  --color-text-main: #c9d1d9;
+  --color-text-bold: #f0f6fc;
+  --color-text-muted: #8b949e;
+
+  --background-image-gradient-accent: linear-gradient(135deg, #58a6ff 0%, #bc8cff 100%);
+  
+  --shadow-glow: 0 10px 30px -10px rgba(88, 166, 255, 0.2);
+
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-fira: "Fira Code", monospace;
+}
+
+body {
+  background-color: var(--color-bg-color);
+  color: var(--color-text-main);
+  font-family: var(--font-inter);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Ambient Background Grid */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+      radial-gradient(circle at 15% 15%, rgba(88, 166, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 65%, rgba(188, 140, 255, 0.08) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.text-gradient {
+  background: var(--background-image-gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
