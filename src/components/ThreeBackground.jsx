@@ -668,15 +668,35 @@ export default function ThreeBackground({ isStarted }) {
         return arr;
     }
 
+
     async function initShapesAndTimeline() {
+        const dispatchProgress = (val) => {
+            window.dispatchEvent(new CustomEvent('three-load-progress', { detail: { progress: val } }));
+        };
+        dispatchProgress(10);
+        
+        // Emulate some loading time so the user can see the cool loader
+        await new Promise(resolve => setTimeout(resolve, 300));
+        dispatchProgress(30);
 
         const bottleShape = generateBottle(PARTICLE_COUNT);
+        dispatchProgress(45);
+        
         const cvBoxShape = generateCVBox(PARTICLE_COUNT);
+        dispatchProgress(60);
+        
         const textShape = getTextPositions('Steve Wong', 0.2);
+        dispatchProgress(75);
 
         // Await the image-sampled shapes
-        const eagleShape = await generatePointsFromImage('boyscout.jpeg', PARTICLE_COUNT, 1.0);
+        const eagleShape = await generatePointsFromImage('boyscout.webp', PARTICLE_COUNT, 1.0);
+        dispatchProgress(90);
+        
         const transitShape = generateTransit(PARTICLE_COUNT);
+        dispatchProgress(100);
+
+
+
 
         // ============================================================
         // 7. ANIMATION LOOP
