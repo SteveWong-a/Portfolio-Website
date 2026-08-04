@@ -1,42 +1,77 @@
-<h1 align="center">Steve Wong | Personal Portfolio 🚀</h1>
+<p align="center">
+  <img src="https://via.placeholder.com/1920x1080/050505/ffffff?text=16:9+Hero+Banner+Placeholder" alt="Hero Banner" width="100%">
+</p>
+
+<h1 align="center">Steve Wong | Digital Portfolio</h1>
 
 <p align="center">
-  <strong>Incoming UIUC Computer Engineering Freshman & Full-Stack AI Developer</strong>
+  <strong>An exploration of spatial interfaces, computational design, and fluid micro-interactions.</strong>
 </p>
 
 <p align="center">
   <a href="https://steve-wong.vercel.app/">
-    <img src="https://img.shields.io/badge/View_Live_Site-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+    <img src="https://img.shields.io/badge/Live_Experience-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Site">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Figma_Prototype-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Next.js_Stack-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Tech Stack">
   </a>
 </p>
 
----
+<br>
 
-## 🌌 About This Project
+## 🌌 The Vision
 
-This repository contains the source code for my interactive, 3D-rendered personal portfolio. Built with a dual-layer architecture, it combines high-performance WebGL graphics with a sleek, glassmorphic UI to showcase my background in software engineering, astrophysics research, and data science. 
+The goal of this digital environment was to break away from static, traditional web templates and engineer an immersive, tactile experience. Grounded in a dark-mode spatial design philosophy, the interface merges sharp typography, Z-axis depth, and physics-based motion to craft an environment that feels alive and highly responsive. It was meticulously designed to communicate my dual background in Full-Stack AI Development and Computer Engineering through a premium, cinematic lens.
 
-### 🛠 Tech Stack
+<br>
 
-*   **Framework:** [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/) [![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-*   **Styling:** [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/) (KokonutUI & Bklit UI patterns)
-*   **3D / Animation:** [![Three.js](https://img.shields.io/badge/Three.js-black?style=flat-square&logo=three.js&logoColor=white)](https://threejs.org/) Framer Motion
-*   **Deployment:** [![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com/)
+## ✨ Design Engineering
 
----
+Every interaction in this architecture was deliberately crafted to provide immediate, satisfying tactile feedback. The UI heavily utilizes strict glassmorphism, Framer Motion spring physics, and hardware-accelerated rendering to maintain a buttery-smooth 60fps experience across all devices.
 
-## 👨‍💻 Featured Experience & Projects
+### Micro-Interactions & Physics
+*   **Custom Vector Cursor:** A fully decoupled, zero-latency `<canvas>` engine powers the cursor system. It features raw mathematical interpolation for a dense, comet-like vector trail and intelligent `mix-blend-mode: difference` inversion over interactive hitboxes.
+*   **Magnetic Navigation Dock:** Inspired by native OS environments, the bottom navigation utilizes strict spring physics (`stiffness: 300, damping: 20`) to create a fluid, magnetic pull that translates icons toward the user's pointer, complete with spatial audio ticks.
+*   **3D Spatial Cards:** Project interfaces map normalized cursor coordinates to dynamic CSS 3D transforms (`transformPerspective: 1000`), creating a subtle, hyper-realistic parallax tilt and reactive glowing border effect that mimics physical glass reacting to light.
 
-*   **Data Analyst @ Readyfly:** Designing data cleanup algorithms and utilizing Python scripts to automate processing for large job listing datasets.
-*   **NASA & GMU Astrophysics Research:** Authored research on ground-based light curve follow-up observations of TESS exoplanet objects.
-*   **Machine Learning & Data Science:** Developed AI object recognition models and data analysis pipelines using Python, CNNs, and YOLO architectures.
+<br>
 
----
+> *[Placeholder: Embed GIF of Vector Cursor & Magnetic Dock Interaction Here]*
 
-## 🚀 Running Locally
+<br>
 
-To explore the dual-system particle architecture and Next.js setup on your local machine:
+> *[Placeholder: Embed GIF of 3D Project Card Tilt Effect Here]*
 
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/yourusername/Portfolio-Website.git](https://github.com/yourusername/Portfolio-Website.git)
+<br>
+
+## 🏗 The Architecture
+
+This experience was built using a modern, highly optimized frontend stack designed for rich interactivity and raw performance:
+
+*   **Core:** React (Next.js App Router)
+*   **Styling:** Tailwind CSS (Custom glassmorphism & dynamic design tokens)
+*   **Motion:** Framer Motion (Physics-based springs, layout animations, AnimatePresence)
+*   **WebGL Engine:** Three.js & GSAP (GPU-accelerated particle morphing and ambient soundscape synchronization)
+
+<br>
+
+## 🚀 Local Initialization
+
+To deploy this environment locally, simply run the following sequence in your terminal:
+
+```bash
+# Clone the repository
+git clone https://github.com/SteveWong-a/Portfolio-Website.git
+
+# Enter the directory
+cd Portfolio-Website
+
+# Install dependencies
+npm install
+
+# Initialize the development server
+npm run dev
+```
