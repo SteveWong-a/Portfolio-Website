@@ -1,7 +1,36 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform, useInView } from 'motion/react';
+import { useRef, useEffect, useState } from 'react';
+
+// Variants for the stagger effect
+const containerVariants = {
+  hidden: { 
+    clipPath: "inset(0 100% 0 0)",
+  },
+  visible: {
+    clipPath: "inset(0 0 0 0)",
+    transition: {
+      duration: 0.8,
+      ease: [0.76, 0, 0.24, 1], // Custom elastic-like ease
+      staggerChildren: 0.1,
+      delayChildren: 0.3
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24
+    }
+  }
+};
 
 export default function ProjectCard({ 
   category, 
@@ -12,9 +41,12 @@ export default function ProjectCard({
   demoText, 
   codeLink, 
   icon,
-  onClick 
+  onClick,
+  isGalleryItem = false
 }) {
   const ref = useRef(null);
+  // Trigger animation when the card scrolls horizontally into view
+  const isInView = useInView(ref, { once: false, margin: "-100px" });
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -22,9 +54,35 @@ export default function ProjectCard({
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
   const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
 
-  // Map normalized coordinates to a max 10 degree tilt
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+  // Map normalized coordinates to a max 15 degree tilt
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const [isCoarse, setIsCoarse] = useState(false);
+
+  useEffect(() => {
+    const checkCoarse = window.matchMedia('(pointer: coarse)').matches;
+    setIsCoarse(checkCoarse);
+
+    if (!checkCoarse) return;
+
+    const handleOrientation = (event) => {
+      let { gamma, beta } = event; // gamma is left/right (-90 to 90), beta is front/back (-180 to 180)
+      
+      // Restrict gamma between -30 and 30, and map to -0.5 to 0.5
+      let normalizedGamma = Math.min(Math.max(gamma || 0, -30), 30) / 60; 
+      
+      // Beta resting is usually around 45deg (holding phone in front)
+      // Constrain beta between 15 and 75, map to -0.5 to 0.5
+      let normalizedBeta = Math.min(Math.max((beta || 45) - 45, -30), 30) / 60;
+
+      x.set(normalizedGamma);
+      y.set(normalizedBeta);
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, [x, y]);
 
 
   const iconColorStyle = icon?.props?.style?.color || 'var(--color-accent-primary)';
@@ -50,7 +108,7 @@ export default function ProjectCard({
   }
 
   const handleMouseMove = (e) => {
-
+    if (isCoarse) return;
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const width = rect.width;
@@ -68,6 +126,7 @@ export default function ProjectCard({
   };
 
   const handleMouseLeave = () => {
+    if (isCoarse) return;
     x.set(0);
     y.set(0);
   };
@@ -83,34 +142,47 @@ export default function ProjectCard({
         rotateY,
         transformPerspective: 1000,
       }}
-      className={`bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 relative overflow-hidden flex flex-col group cursor-pointer ${hoverShadowClass} ${hoverBorderClass} scroll-reveal transition-all duration-300`}
+      variants={isGalleryItem ? containerVariants : {}}
+      initial={isGalleryItem ? "hidden" : false}
+      animate={isGalleryItem ? (isInView ? "visible" : "hidden") : false}
+      whileTap={{ scale: 0.97 }}
+      whileHover={isGalleryItem ? { y: -5 } : {}}
+      className={`h-full bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 relative overflow-hidden flex flex-col group cursor-pointer ${hoverShadowClass} ${hoverBorderClass} transition-all duration-300 ${!isGalleryItem ? "scroll-reveal" : ""}`}
     >
       <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r ${gradientClass} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}></div>
       
-      <div className="w-full">
-        <div className="flex justify-between items-start mb-4">
+      {/* Background pseudo-element for scale animation */}
+      <motion.div 
+        className="absolute inset-0 z-[-1] opacity-5 bg-gradient-to-br from-white/10 to-transparent"
+        initial={isGalleryItem ? { scale: 1.2 } : { scale: 1 }}
+        animate={isGalleryItem ? (isInView ? { scale: 1 } : { scale: 1.2 }) : { scale: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      />
+
+      <div className="w-full relative z-10">
+        <motion.div variants={itemVariants} className="flex justify-between items-start mb-4">
           <span className={`text-xs font-semibold tracking-wider uppercase ${subtitleClass} opacity-80`}>{category}</span>
           <span className={`text-xl transition-transform duration-300 group-hover:scale-110 ${subtitleClass}`}>{icon}</span>
-        </div>
-        <h3 className={`text-2xl font-bold text-white mb-3 tracking-tight transition-colors ${titleHoverClass}`}>{title}</h3>
-        <div className="text-sm text-text-main/80 leading-relaxed font-light line-clamp-3">
+        </motion.div>
+        <motion.h3 variants={itemVariants} className={`text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight transition-colors ${titleHoverClass}`}>{title}</motion.h3>
+        <motion.div variants={itemVariants} className="text-sm md:text-base text-text-main/80 leading-relaxed font-light line-clamp-3 md:line-clamp-4">
           {description}
-        </div>
-        <div className="flex flex-wrap gap-2 mt-6">
+        </motion.div>
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mt-6">
           {tags?.map((tag, i) => (
             <span key={i} className="text-xs font-mono bg-white/10 text-white/90 px-2.5 py-1 rounded border border-white/10">
               {tag}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
       
       {/* We hide the external links on the card because they are now inside the OpenPanel drawer */}
-      <div className="mt-auto pt-6 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <motion.div variants={itemVariants} className="mt-auto pt-6 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <span className={`text-xs font-medium flex items-center gap-2 ${subtitleClass}`}>
           View Case Study <i className="fa-solid fa-arrow-right"></i>
         </span>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
+import { useStore } from '@/store/useStore';
 
 export default function ThreeBackground({ isStarted }) {
     const canvasRef = useRef(null);
@@ -14,6 +15,13 @@ export default function ThreeBackground({ isStarted }) {
     const skipBtnRef = useRef(null);
     const [isVisible, setIsVisible] = useState(true);
     const tlRef = useRef(null);
+
+    const isPanelOpen = useStore(state => state.isPanelOpen);
+    const isPanelOpenRef = useRef(isPanelOpen);
+
+    useEffect(() => {
+        isPanelOpenRef.current = isPanelOpen;
+    }, [isPanelOpen]);
 
     useEffect(() => {
         if (isStarted && tlRef.current) {
@@ -707,6 +715,8 @@ export default function ThreeBackground({ isStarted }) {
 
         function animate() {
             animationId = requestAnimationFrame(animate);
+            if (isPanelOpenRef.current) return;
+            
             const elapsed = clock.getElapsedTime();
             material.uniforms.uTime.value = elapsed;
             bgMaterial.uniforms.uTime.value = elapsed;

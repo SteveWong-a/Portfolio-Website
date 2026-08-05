@@ -11,18 +11,12 @@ const ThreeBackground = dynamic(() => import('@/components/ThreeBackground'), { 
 import InitializerOverlay from '@/components/InitializerOverlay';
 import OpenPanel from '@/components/OpenPanel';
 import CursorSpotlight from '@/components/CursorSpotlight';
+import { useStore } from '@/store/useStore';
+import AILab from '@/components/AILab';
+import FlowingGallery from '@/components/FlowingGallery';
 
 const FEATURED_PROJECTS = [
-  {
-    category: "Computer Vision & AI Deployment",
-    icon: <i className="fa-solid fa-pen-ruler" style={{ color: 'var(--color-accent-primary)' }}></i>,
-    title: "AI Drawing Predictor",
-    description: "Interactive computer vision and deep learning application deployed on Hugging Face Spaces. Uses Convolutional Neural Networks (CNNs) to recognize and predict user sketches in real-time within a Skribbl.io-inspired drawing interface. Trained on Quick Draw! Google datasets.",
-    tags: ["PyTorch", "CNN Architecture", "Hugging Face Spaces", "Gradio"],
-    demoLink: "#",
-    demoText: <>Launch Interactive Demo <i className="fa-solid fa-paintbrush"></i></>,
-    codeLink: "https://huggingface.co/spaces/SteveaWong/AI-Drawing-Predictor"
-  },
+
   {
     category: "Web Application & Health Tech",
     icon: <i className="fa-solid fa-glass-water" style={{ color: 'var(--color-accent-primary)' }}></i>,
@@ -32,6 +26,17 @@ const FEATURED_PROJECTS = [
     demoLink: "https://water-drinking-reminder-933bf.web.app/",
     demoText: <>Launch Application <i className="fa-solid fa-arrow-up-right-from-square"></i></>
   },
+
+  {
+    category: "Machine Learning & Econometrics",
+    icon: <i className="fa-solid fa-chart-line" style={{ color: 'var(--color-accent-green)' }}></i>,
+    title: "DIYA & Vanderbilt Microlending Paper",
+    description: "Research paper published in the Vanderbilt Young Scientist Journal titled 'Identifying Reliable Clients for Microlending: A Data-Driven Approach'. Developed machine learning risk classification models removing credit-history bias to help financial institutions safely serve underserved communities.",
+    tags: ["Python", "Scikit-Learn", "Predictive Modeling", "Data Analysis"],
+    demoLink: "https://wp0.vanderbilt.edu/youngscientistjournal/article/identifying-reliable-clients-for-microlending-a-data-driven-approach",
+    demoText: <>Read Published Paper <i className="fa-solid fa-arrow-up-right-from-square"></i></>
+  },
+
   {
     category: "Astrophysics & Data Analysis",
     icon: <i className="fa-solid fa-satellite" style={{ color: 'var(--color-accent-secondary)' }}></i>,
@@ -41,14 +46,16 @@ const FEATURED_PROJECTS = [
     demoLink: "https://doi.org/10.13021/MARS/15188",
     demoText: <>Read Research Paper (DOI) <i className="fa-solid fa-book-open"></i></>
   },
+
   {
-    category: "Machine Learning & Econometrics",
-    icon: <i className="fa-solid fa-chart-line" style={{ color: 'var(--color-accent-green)' }}></i>,
-    title: "DIYA & Vanderbilt Microlending Paper",
-    description: "Research paper published in the Vanderbilt Young Scientist Journal titled 'Identifying Reliable Clients for Microlending: A Data-Driven Approach'. Developed machine learning risk classification models removing credit-history bias to help financial institutions safely serve underserved communities.",
-    tags: ["Python", "Scikit-Learn", "Predictive Modeling", "Data Analysis"],
-    demoLink: "https://wp0.vanderbilt.edu/youngscientistjournal/article/identifying-reliable-clients-for-microlending-a-data-driven-approach",
-    demoText: <>Read Published Paper <i className="fa-solid fa-arrow-up-right-from-square"></i></>
+    category: "Machine Learning & Vision Models",
+    icon: <i className="fa-solid fa-eye" style={{ color: 'var(--color-accent-green)' }}></i>,
+    title: "Progressive Vision Language Model",
+    description: "Developed and trained a progressive vision-language model using temporal checkpoints. Integrated with Hugging Face for robust model deployment and inference.",
+    tags: ["PyTorch", "Vision Language Model", "Hugging Face"],
+    demoLink: "https://huggingface.co/SteveaWong/smolvlm-temporal-checkpoints",
+    demoText: <>View Checkpoints <i className="fa-solid fa-arrow-up-right-from-square"></i></>,
+    codeLink: "https://github.com/SteveWong-a/Progessive-Vision-Language-Model"
   }
 ];
 
@@ -107,6 +114,11 @@ const EXPERIENCES = [
 export default function Home() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isStarted, setIsStarted] = useState(false);
+  const setPanelOpen = useStore((state) => state.setPanelOpen);
+
+  useEffect(() => {
+    setPanelOpen(!!selectedProject);
+  }, [selectedProject, setPanelOpen]);
 
   useEffect(() => {
     // Scroll reveal animation using Motion
@@ -134,31 +146,9 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-6 pt-24 pb-24 relative z-10">
         <Hero />
 
-        {/* Featured Projects */}
-        <section id="featured" className="pt-24 mt-20 border-t border-card-border/50">
-          <div className="mb-12 scroll-reveal opacity-0">
-            <h2 className="text-3xl font-bold text-white mb-2 font-fira tracking-tight">Featured Projects</h2>
-            <p className="text-text-muted">Flagship web applications, machine learning deployments, and published research papers.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {FEATURED_PROJECTS.map((proj, idx) => (
-              <ProjectCard key={idx} {...proj} onClick={() => setSelectedProject(proj)} />
-            ))}
-          </div>
-        </section>
+        <FlowingGallery projects={[...FEATURED_PROJECTS, ...OTHER_PROJECTS]} onSelectProject={setSelectedProject} />
 
-        {/* Other / Additional Projects */}
-        <section id="projects" className="pt-24 mt-20 border-t border-card-border/50">
-          <div className="mb-12 scroll-reveal opacity-0">
-            <h2 className="text-3xl font-bold text-white mb-2 font-fira tracking-tight">More Projects & Initiatives</h2>
-            <p className="text-text-muted">Additional technical web builds, sports analytics, and community leadership.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {OTHER_PROJECTS.map((proj, idx) => (
-              <ProjectCard key={idx} {...proj} onClick={() => setSelectedProject(proj)} />
-            ))}
-          </div>
-        </section>
+        <AILab />
 
         {/* Work Experience */}
         <section id="experience" className="pt-24 mt-20 border-t border-card-border/50">
