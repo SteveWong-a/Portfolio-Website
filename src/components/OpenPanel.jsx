@@ -35,7 +35,7 @@ export default function OpenPanel({ project, isOpen, onClose }) {
             animate={{ opacity: 1, scale: 1, y: "-50%", x: "-50%" }}
             exit={{ opacity: 0, scale: 0.95, y: "-40%", x: "-50%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed top-1/2 left-1/2 w-[90vw] max-w-3xl max-h-[90vh] bg-card-bg/95 backdrop-blur-xl border border-white/10 shadow-2xl z-[210] overflow-y-auto flex flex-col rounded-2xl"
+            className="fixed top-1/2 left-1/2 w-[90vw] max-w-3xl max-h-[90vh] bg-card-bg/95 backdrop-blur-xl border border-white/10 shadow-2xl z-[210] overflow-y-auto flex flex-col rounded-sm"
           >
             {/* Close Button */}
             <motion.button
@@ -66,12 +66,12 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
-                <span className="text-sm font-semibold tracking-wider uppercase text-accent-primary mb-2 block">{project.category}</span>
+                <span className="text-sm font-mono tracking-wider uppercase text-cyan-400/80 mb-2 block">{project.category}</span>
                 <h2 className="text-3xl font-bold text-white mb-6 tracking-tight">{project.title}</h2>
                 
                 <div className="flex flex-wrap gap-2 mb-8">
                   {project.tags?.map((tag, i) => (
-                    <span key={i} className="text-xs font-mono bg-white/5 text-white/80 px-3 py-1.5 rounded-full border border-white/10">
+                    <span key={i} className="text-xs font-mono tracking-wider bg-white/5 text-cyan-400/80 px-3 py-1.5 rounded-sm border border-white/10">
                       {tag}
                     </span>
                   ))}
@@ -84,7 +84,7 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 transition={{ delay: 0.3, duration: 0.4 }}
                 className="prose prose-invert max-w-none mb-10 text-text-main/90 leading-relaxed font-light space-y-6"
               >
-                <div className="bg-white/5 p-4 rounded-lg border border-white/5 text-sm italic border-l-2 border-l-accent-primary">
+                <div className="bg-white/5 p-4 rounded-sm border border-white/5 text-sm italic border-l-2 border-l-cyan-400/80">
                   {project.description}
                 </div>
 
@@ -109,12 +109,12 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 className="mt-auto pt-6 border-t border-white/10 flex flex-wrap gap-4"
               >
                 {project.demoLink && (
-                  <a href={project.demoLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px] text-center bg-accent-primary text-white py-3 px-6 rounded-lg font-semibold transition-all hover:bg-opacity-90 hover:shadow-glow flex items-center justify-center gap-2">
+                  <a href={project.demoLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px] text-center bg-cyan-400/20 text-cyan-400 py-3 px-6 rounded-sm font-semibold transition-all hover:bg-cyan-400/30 hover:shadow-glow flex items-center justify-center gap-2 border border-cyan-400/50">
                     {project.demoText || <>Launch Demo <i className="fa-solid fa-arrow-up-right-from-square"></i></>}
                   </a>
                 )}
                 {project.codeLink && (
-                  <a href={project.codeLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[150px] text-center bg-white/5 text-white py-3 px-6 rounded-lg font-medium transition-all hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2">
+                  <a href={project.codeLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[150px] text-center bg-white/5 text-white py-3 px-6 rounded-sm font-medium transition-all hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2">
                     View Code <i className="fa-brands fa-github"></i>
                   </a>
                 )}

@@ -14,6 +14,7 @@ import CursorSpotlight from '@/components/CursorSpotlight';
 import { useStore } from '@/store/useStore';
 import AILab from '@/components/AILab';
 import FlowingGallery from '@/components/FlowingGallery';
+import VisionHudOverlay from '@/components/VisionHudOverlay';
 
 const FEATURED_PROJECTS = [
 
@@ -115,10 +116,24 @@ export default function Home() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isStarted, setIsStarted] = useState(false);
   const setPanelOpen = useStore((state) => state.setPanelOpen);
+  const isHudActive = useStore((state) => state.isHudActive);
+  const toggleHud = useStore((state) => state.toggleHud);
 
   useEffect(() => {
     setPanelOpen(!!selectedProject);
   }, [selectedProject, setPanelOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key.toLowerCase() === 'h') {
+        toggleHud();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleHud]);
 
   useEffect(() => {
     // Scroll reveal animation using Motion
@@ -142,9 +157,16 @@ export default function Home() {
       <Navbar />
       <Dock />
       <OpenPanel isOpen={!!selectedProject} project={selectedProject} onClose={() => setSelectedProject(null)} />
+      <VisionHudOverlay />
 
-      <main className="max-w-6xl mx-auto px-6 pt-24 pb-24 relative z-10">
-        <Hero />
+      <main 
+        className={`max-w-6xl mx-auto px-6 pt-24 pb-24 relative z-10 transition-all duration-1000 ${
+          isHudActive ? 'contrast-[1.2] brightness-90 hue-rotate-90 saturate-[1.5]' : ''
+        }`}
+      >
+        <div data-hud-target="HERO_SECTION">
+          <Hero />
+        </div>
 
         <FlowingGallery projects={[...FEATURED_PROJECTS, ...OTHER_PROJECTS]} onSelectProject={setSelectedProject} />
 
@@ -170,56 +192,62 @@ export default function Home() {
             <p className="text-text-muted">Technical proficiencies, academic background, and leadership roles.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-accent-primary/50 transition-all duration-300">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4"><i className="fa-solid fa-university" style={{ color: 'var(--color-accent-primary)' }}></i> Education</h3>
-              <ul className="space-y-4">
+            <div data-hud-target="EDUCATION" className="relative group overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-accent-primary/50 transition-all duration-300">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-accent-primary to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="absolute inset-0 z-[-1] opacity-5 bg-gradient-to-br from-white/10 to-transparent transition-opacity group-hover:opacity-10"></div>
+              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4 relative z-10"><i className="fa-solid fa-university" style={{ color: 'var(--color-accent-primary)' }}></i> Education</h3>
+              <ul className="space-y-4 relative z-10">
                 <li className="flex flex-col">
                   <strong className="text-text-bold">UIUC (Grainger Engineering)</strong>
-                  <span className="text-text-muted text-sm">Computer Science (2026+)</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">Computer Science (2026+)</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Dougherty Valley High School</strong>
-                  <span className="text-text-muted text-sm">Senior / High Honors</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">Senior / High Honors</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Community College Coursework</strong>
-                  <span className="text-text-muted text-sm">DVC & Compton (CS & Math)</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">DVC & Compton (CS & Math)</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-accent-secondary/50 transition-all duration-300">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4"><i className="fa-solid fa-code" style={{ color: 'var(--color-accent-secondary)' }}></i> Languages & Frameworks</h3>
-              <ul className="space-y-4">
+            <div data-hud-target="SKILLS" className="relative group overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-accent-secondary/50 transition-all duration-300">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-accent-secondary to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="absolute inset-0 z-[-1] opacity-5 bg-gradient-to-br from-white/10 to-transparent transition-opacity group-hover:opacity-10"></div>
+              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4 relative z-10"><i className="fa-solid fa-code" style={{ color: 'var(--color-accent-secondary)' }}></i> Languages & Frameworks</h3>
+              <ul className="space-y-4 relative z-10">
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Programming Languages</strong>
-                  <span className="text-text-muted text-sm">Python, C++, JavaScript, C, Assembly</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">Python, C++, JavaScript, C, Assembly</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">AI & Data Science</strong>
-                  <span className="text-text-muted text-sm">PyTorch, CNNs, OpenCV, Pandas, NumPy</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">PyTorch, CNNs, OpenCV, Pandas, NumPy</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Web & Cloud</strong>
-                  <span className="text-text-muted text-sm">HTML5/CSS3, Firebase, Git, Hugging Face</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">HTML5/CSS3, Firebase, Git, Hugging Face</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-accent-green/50 transition-all duration-300">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4"><i className="fa-solid fa-briefcase" style={{ color: 'var(--color-accent-green)' }}></i> Experience & Honors</h3>
-              <ul className="space-y-4">
+            <div data-hud-target="EXPERIENCE" className="relative group overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-8 scroll-reveal hover:-translate-y-1 hover:shadow-glow hover:border-cyan-400/50 transition-all duration-300">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="absolute inset-0 z-[-1] opacity-5 bg-gradient-to-br from-white/10 to-transparent transition-opacity group-hover:opacity-10"></div>
+              <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4 relative z-10"><i className="fa-solid fa-briefcase text-cyan-400"></i> Experience & Honors</h3>
+              <ul className="space-y-4 relative z-10">
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Readyfly AI Startup</strong>
-                  <span className="text-text-muted text-sm">Data Analyst Intern (2024-Present)</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">Data Analyst Intern (2024-Present)</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Research Internships</strong>
-                  <span className="text-text-muted text-sm">NASA GMU & DIYA Vanderbilt</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">NASA GMU & DIYA Vanderbilt</span>
                 </li>
                 <li className="flex flex-col">
                   <strong className="text-text-bold">Boy Scouts of America</strong>
-                  <span className="text-text-muted text-sm">Eagle Scout Candidate & Troop Guide</span>
+                  <span className="text-text-muted text-sm font-mono text-cyan-400/80 tracking-wider mt-1">Eagle Scout Candidate & Troop Guide</span>
                 </li>
               </ul>
             </div>
@@ -228,8 +256,9 @@ export default function Home() {
 
         {/* Contact Section */}
         <section id="contact" className="pt-24 mt-20 border-t border-card-border/50">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-12 text-center scroll-reveal hover:shadow-[0_0_40px_rgba(88,166,255,0.2)] transition-shadow duration-500 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-green"></div>
+          <div data-hud-target="CONTACT_TERMINAL" className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-12 text-center scroll-reveal hover:shadow-[0_0_40px_rgba(88,166,255,0.2)] transition-shadow duration-500 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-primary via-accent-secondary to-cyan-400"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             <h2 className="text-3xl font-bold text-white mb-4">Let's Connect</h2>
             <p className="text-text-muted mb-8 max-w-xl mx-auto">Feel free to reach out for research opportunities, software engineering collaborations, or project inquiries!</p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">

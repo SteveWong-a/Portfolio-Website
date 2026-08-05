@@ -7,7 +7,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
+import { useReducedMotion } from 'motion/react';
 import { useStore } from '@/store/useStore';
+import { useGalleryStore } from '@/store/useGalleryStore';
 
 export default function ThreeBackground({ isStarted }) {
     const canvasRef = useRef(null);
@@ -18,10 +20,16 @@ export default function ThreeBackground({ isStarted }) {
 
     const isPanelOpen = useStore(state => state.isPanelOpen);
     const isPanelOpenRef = useRef(isPanelOpen);
+    const shouldReduceMotion = useReducedMotion();
+    const reduceMotionRef = useRef(shouldReduceMotion);
 
     useEffect(() => {
         isPanelOpenRef.current = isPanelOpen;
     }, [isPanelOpen]);
+
+    useEffect(() => {
+        reduceMotionRef.current = shouldReduceMotion;
+    }, [shouldReduceMotion]);
 
     useEffect(() => {
         if (isStarted && tlRef.current) {
@@ -113,6 +121,117 @@ export default function ThreeBackground({ isStarted }) {
 
     function createEmptyArray(count) {
         return new Float32Array(count * 3);
+    }
+
+    function getStarSystemPositions(particleCount) {
+        const arr = new Float32Array(particleCount * 3);
+        const coreCount = Math.floor(particleCount * 0.4);
+        const ring1Count = Math.floor(particleCount * 0.3);
+        const ring2Count = particleCount - coreCount - ring1Count;
+
+        // Core Sphere
+        for (let i = 0; i < coreCount; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = Math.pow(Math.random(), 0.3) * 6; // Dense core
+            arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            arr[i * 3 + 2] = r * Math.cos(phi);
+        }
+
+        // Ring 1 (Tilted)
+        for (let i = coreCount; i < coreCount + ring1Count; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const r = 12 + (Math.random() - 0.5) * 4;
+            const x = r * Math.cos(theta);
+            const z = r * Math.sin(theta);
+            const y = z * Math.sin(0.4) + (Math.random() - 0.5) * 0.5;
+            arr[i * 3] = x;
+            arr[i * 3 + 1] = y;
+            arr[i * 3 + 2] = z * Math.cos(0.4);
+        }
+
+        // Ring 2 (Tilted opposite)
+        for (let i = coreCount + ring1Count; i < particleCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const r = 20 + (Math.random() - 0.5) * 6;
+            const x = r * Math.cos(theta);
+            const z = r * Math.sin(theta);
+            const y = z * Math.sin(-0.3) + (Math.random() - 0.5) * 0.5;
+            arr[i * 3] = x;
+            arr[i * 3 + 1] = y;
+            arr[i * 3 + 2] = z * Math.cos(-0.3);
+        }
+        return arr;
+    }
+
+    function getNeuralGraphPositions(particleCount) {
+        const arr = new Float32Array(particleCount * 3);
+        const nodeCount = 8;
+        const nodes = [];
+        for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+                x: (Math.random() - 0.5) * 40,
+                y: (Math.random() - 0.5) * 40,
+                z: (Math.random() - 0.5) * 40
+            });
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            const type = Math.random();
+            if (type < 0.6) {
+                // Cluster around a node
+                const node = nodes[Math.floor(Math.random() * nodeCount)];
+                const r = Math.random() * 4;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2.0 * Math.random() - 1.0);
+                arr[i * 3] = node.x + r * Math.sin(phi) * Math.cos(theta);
+                arr[i * 3 + 1] = node.y + r * Math.sin(phi) * Math.sin(theta);
+                arr[i * 3 + 2] = node.z + r * Math.cos(phi);
+            } else {
+                // Connections between random pairs of nodes
+                const nodeA = nodes[Math.floor(Math.random() * nodeCount)];
+                const nodeB = nodes[Math.floor(Math.random() * nodeCount)];
+                const t = Math.random();
+                arr[i * 3] = nodeA.x + (nodeB.x - nodeA.x) * t + (Math.random() - 0.5) * 1.5;
+                arr[i * 3 + 1] = nodeA.y + (nodeB.y - nodeA.y) * t + (Math.random() - 0.5) * 1.5;
+                arr[i * 3 + 2] = nodeA.z + (nodeB.z - nodeA.z) * t + (Math.random() - 0.5) * 1.5;
+            }
+        }
+        return arr;
+    }
+
+    function getFluidRipplePositions(particleCount) {
+        const arr = new Float32Array(particleCount * 3);
+        const size = Math.ceil(Math.sqrt(particleCount));
+        const spacing = 1.0;
+        const offset = (size * spacing) / 2;
+
+        for (let i = 0; i < particleCount; i++) {
+            const row = Math.floor(i / size);
+            const col = i % size;
+            const x = (col * spacing) - offset;
+            const z = (row * spacing) - offset;
+            const dist = Math.sqrt(x*x + z*z);
+            const y = Math.sin(dist * 0.3) * 4.0;
+            
+            arr[i * 3] = x;
+            arr[i * 3 + 1] = y;
+            arr[i * 3 + 2] = z;
+        }
+        return arr;
+    }
+
+    function getDefaultFieldPositions(particleCount) {
+        const arr = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            arr[i * 3] = (Math.random() - 0.5) * 60;
+            arr[i * 3 + 1] = (Math.random() - 0.5) * 60;
+            arr[i * 3 + 2] = (Math.random() - 0.5) * 60;
+        }
+        return arr;
     }
 
     // 1. Water Bottle (from Water bottle.jpeg)
@@ -356,6 +475,65 @@ export default function ThreeBackground({ isStarted }) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x0d1117, 1);
+
+    // ============================================================
+    // 3.5. POST-PROCESSING (Vanilla Implementation)
+    // ============================================================
+
+    const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        samples: 4 // Enable MSAA on the render target if supported
+    });
+
+    const orthoCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const quadScene = new THREE.Scene();
+    const quadGeo = new THREE.PlaneGeometry(2, 2);
+
+    const postMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            tDiffuse: { value: renderTarget.texture },
+            uOffset: { value: 0.0 }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform float uOffset;
+            varying vec2 vUv;
+
+            // Subtle noise function for film grain
+            float random(vec2 st) {
+                return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+            }
+
+            void main() {
+                vec2 uv = vUv;
+                
+                // Chromatic Aberration split based on scroll velocity
+                vec4 cr = texture2D(tDiffuse, uv + vec2(uOffset, uOffset * 0.5));
+                vec4 cga = texture2D(tDiffuse, uv);
+                vec4 cb = texture2D(tDiffuse, uv - vec2(uOffset, uOffset * 0.5));
+                
+                vec4 color = vec4(cr.r, cga.g, cb.b, cga.a);
+                
+                // Subtle film grain noise
+                float noise = (random(uv) - 0.5) * 0.05;
+                color.rgb += noise;
+                
+                gl_FragColor = color;
+            }
+        `
+    });
+
+    const quadMesh = new THREE.Mesh(quadGeo, postMaterial);
+    quadScene.add(quadMesh);
 
     // ============================================================
     // 4. PARTICLE SYSTEM WITH CUSTOM SHADERS
@@ -712,28 +890,94 @@ export default function ThreeBackground({ isStarted }) {
 
         const clock = new THREE.Clock();
         let animationId;
+        
+        // Elite Performance Monitor
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let hasDegraded = false;
+        let staticElapsed = 0; // Frozen time for reduced motion
+        
+        // Velocity Tracker
+        let lastScrollY = window.scrollY;
+        let currentAberration = 0;
 
         function animate() {
             animationId = requestAnimationFrame(animate);
             if (isPanelOpenRef.current) return;
             
-            const elapsed = clock.getElapsedTime();
-            material.uniforms.uTime.value = elapsed;
-            bgMaterial.uniforms.uTime.value = elapsed;
+            // FPS Monitoring
+            const now = performance.now();
+            frameCount++;
+            if (now - lastTime >= 1000) { // Check every 1 second
+                const fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                
+                // If FPS is critically low, trigger elite degradation
+                if (fps < 55 && !hasDegraded && useGalleryStore.getState().isIntroFinished) {
+                    console.log("[Elite Performance] Framerate dropped below 55fps. Degrading quality.");
+                    hasDegraded = true;
+                    // Lower device pixel ratio
+                    renderer.setPixelRatio(1);
+                    // Slice the particle count from 20,000 to 3,000 without destroying buffers
+                    geometry.setDrawRange(0, 3000);
+                    bgGeometry.setDrawRange(0, 3000);
+                    // Disable expensive drift noise
+                    material.uniforms.uDriftStrength.value = 0.0;
+                }
+            }
+
+            const dt = clock.getDelta();
+            
+            if (reduceMotionRef.current) {
+                // Freeze time for reduced motion
+                material.uniforms.uTime.value = staticElapsed;
+                bgMaterial.uniforms.uTime.value = staticElapsed;
+            } else {
+                staticElapsed += dt;
+                material.uniforms.uTime.value = staticElapsed;
+                bgMaterial.uniforms.uTime.value = staticElapsed;
+            }
 
             // Sync background color with foreground
             bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
 
             // Gentle oscillating rotation so text remains front-facing
-            if (!window.isAligning) {
-                particles.rotation.y = Math.sin(elapsed * 0.15) * 0.2;
+            if (!window.isAligning && !reduceMotionRef.current) {
+                particles.rotation.y = Math.sin(staticElapsed * 0.15) * 0.2;
             }
 
             // Background oscillates ±15 degrees (0.2618 radians)
-            bgParticles.rotation.y = Math.sin(elapsed * 0.3) * 0.2618;
-            bgParticles.rotation.x = Math.sin(elapsed * 0.2 + 1.0) * 0.08;
+            if (!reduceMotionRef.current) {
+                bgParticles.rotation.y = Math.sin(staticElapsed * 0.3) * 0.2618;
+                bgParticles.rotation.x = Math.sin(staticElapsed * 0.2 + 1.0) * 0.08;
+            }
 
+            // 1. Render main scene to the render target
+            renderer.setRenderTarget(renderTarget);
             renderer.render(scene, camera);
+            
+            // 2. Track Scroll Velocity for Signature Post-Processing
+            if (!reduceMotionRef.current && useGalleryStore.getState().isIntroFinished) {
+                const currentScrollY = window.scrollY;
+                const scrollVelocity = currentScrollY - lastScrollY;
+                lastScrollY = currentScrollY;
+                
+                // Cap the target aberration. A fast scroll is ~50-80px per frame.
+                // 50 * 0.002 = 0.1 max aberration.
+                const targetAberration = Math.min(Math.abs(scrollVelocity) * 0.002, 0.08);
+                
+                // Spring physics easing towards the target
+                currentAberration += (targetAberration - currentAberration) * 0.15;
+                postMaterial.uniforms.uOffset.value = currentAberration;
+            } else {
+                currentAberration += (0.0 - currentAberration) * 0.15;
+                postMaterial.uniforms.uOffset.value = currentAberration;
+            }
+
+            // 3. Render full-screen quad to the actual screen
+            renderer.setRenderTarget(null);
+            renderer.render(quadScene, orthoCamera);
         }
         animate();
 
@@ -746,6 +990,39 @@ export default function ThreeBackground({ isStarted }) {
             delay: 0.5
         });
         tlRef.current = tl;
+
+        const unsubscribeGallery = useGalleryStore.subscribe(
+            (state, prevState) => {
+                // Do not interrupt the majestic intro animation
+                if (!state.isIntroFinished) return;
+                
+                if (state.activeShape !== prevState.activeShape) {
+                    let newTarget;
+                    switch (state.activeShape) {
+                        case 'STAR_SYSTEM': newTarget = getStarSystemPositions(PARTICLE_COUNT); break;
+                        case 'NEURAL_GRAPH': newTarget = getNeuralGraphPositions(PARTICLE_COUNT); break;
+                        case 'FLUID_RIPPLE': newTarget = getFluidRipplePositions(PARTICLE_COUNT); break;
+                        case 'DEFAULT_FIELD':
+                        default: newTarget = getDefaultFieldPositions(PARTICLE_COUNT); break;
+                    }
+
+                    // Reset mesh transforms from the intro text alignment so new shapes are visible
+                    gsap.to(particles.position, { x: 0, y: 0, z: 0, duration: 1.2, ease: "power2.out" });
+                    gsap.to(material.uniforms.uScale, { value: 1.5, duration: 1.2, ease: "power2.out" });
+                    gsap.to(bgMaterial.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.2 });
+                    window.isAligning = false; // Restore normal rotation
+
+                    updatePositionsToShape(newTarget);
+                    
+                    gsap.killTweensOf(material.uniforms.uProgress);
+                    gsap.to(material.uniforms.uProgress, {
+                        value: 1.0,
+                        duration: 1.2,
+                        ease: "expo.out"
+                    });
+                }
+            }
+        );
 
         // We start with a bit of drift, then settle
         material.uniforms.uDriftStrength.value = 1.0;
@@ -891,6 +1168,9 @@ export default function ThreeBackground({ isStarted }) {
             if (skipBtn) {
                 skipBtn.style.display = "none";
             }
+            
+            // Mark intro as finished so Gallery scroll sync can take over
+            useGalleryStore.getState().setIntroFinished(true);
 
             // Import Motion scroll and map page scroll progress to camera
             import('motion').then(({ scroll }) => {
@@ -926,20 +1206,25 @@ export default function ThreeBackground({ isStarted }) {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderTarget.setSize(window.innerWidth, window.innerHeight);
         };
         window.addEventListener('resize', handleResize);
 
         return () => {
-            if (animationId) cancelAnimationFrame(animationId);
+            unsubscribeGallery();
             window.removeEventListener('resize', handleResize);
-            if (tl) tl.kill();
+            if (animationId) cancelAnimationFrame(animationId);
+            renderer.dispose();
             geometry.dispose();
             material.dispose();
             bgGeometry.dispose();
             bgMaterial.dispose();
-            renderer.dispose();
+            postMaterial.dispose();
+            quadGeo.dispose();
+            renderTarget.dispose();
             scene.remove(particles);
             scene.remove(bgParticles);
+            if (tl) tl.kill();
         };
 
     } // end of initShapesAndTimeline

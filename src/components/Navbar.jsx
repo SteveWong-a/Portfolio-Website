@@ -6,8 +6,7 @@ export default function Navbar() {
           Steve <span className="text-accent-primary">Wong</span>
         </a>
         <ul className="flex items-center gap-6 m-0 p-0 list-none">
-          <li><a href="#featured" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Featured</a></li>
-          <li><a href="#projects" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Other Projects</a></li>
+          <li><a href="#featured" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Projects Gallery</a></li>
           <li><a href="#experience" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Work Experience</a></li>
           <li><a href="#skills" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Skills & Education</a></li>
           <li><a href="#contact" className="text-text-main text-sm font-medium hover:text-white transition-colors duration-200">Contact</a></li>

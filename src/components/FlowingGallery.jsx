@@ -1,12 +1,31 @@
 "use client";
 
 import { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
 import ProjectCard from './ProjectCard';
+
+import { useInView } from 'motion/react';
+import { useGalleryStore } from '@/store/useGalleryStore';
+
+function getShapeForCategory(category) {
+  if (category.includes('Astrophysics')) return 'STAR_SYSTEM';
+  if (category.includes('Machine Learning') || category.includes('AI') || category.includes('LLM')) return 'NEURAL_GRAPH';
+  return 'FLUID_RIPPLE';
+}
 
 export default function FlowingGallery({ projects, onSelectProject }) {
   const targetRef = useRef(null);
-  
+  const titleRef = useRef(null);
+  const isTitleInView = useInView(titleRef, { margin: "-100px" });
+
+  useEffect(() => {
+    if (isTitleInView) {
+      useGalleryStore.getState().setActiveProject(null, 'DEFAULT_FIELD');
+    }
+  }, [isTitleInView]);
+
+  const shouldReduceMotion = useReducedMotion();
+
   const [isDesktop, setIsDesktop] = useState(true);
   
   useEffect(() => {
@@ -32,16 +51,8 @@ export default function FlowingGallery({ projects, onSelectProject }) {
     let valVw = 0;
     if (i > 0) {
       if (isDesktop) {
-        // Desktop Layout Math:
-        // Padding (10vw) + Title (35vw) + Gap (10vw) + CardCenter (45vw / 2) = 77.5vw
-        // Offset to center (50vw) = 50vw - 77.5vw = -27.5vw
-        // Next card = 45vw + 5vw gap = 50vw distance
         valVw = -27.5 - ((i - 1) * 50);
       } else {
-        // Mobile Layout Math:
-        // Padding (10vw) + Title (80vw) + Gap (10vw) + CardCenter (85vw / 2) = 142.5vw
-        // Offset to center (50vw) = 50vw - 142.5vw = -92.5vw
-        // Next card = 85vw + 5vw gap = 90vw distance
         valVw = -92.5 - ((i - 1) * 90);
       }
     }
@@ -60,15 +71,36 @@ export default function FlowingGallery({ projects, onSelectProject }) {
   }
 
   const x = useTransform(scrollYProgress, xInput, xOutput);
-  
-  // Slower parallax for background decorative text
   const parallaxX = useTransform(scrollYProgress, [0, 1], ["10%", "-30%"]);
 
+  if (shouldReduceMotion) {
+    return (
+      <section id="featured" className="pt-24 mt-20 border-t border-card-border/50 max-w-6xl mx-auto px-6">
+        <div ref={titleRef} className="mb-12">
+          <h2 className="text-3xl font-bold text-white mb-2 font-fira tracking-tight">Flowing Gallery</h2>
+          <p className="text-text-muted text-lg max-w-sm">A narrative journey through flagship web applications, machine learning deployments, and published research papers.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {projects.map((proj, idx) => (
+            <div key={idx} className="h-full">
+              <ProjectCard 
+                {...proj} 
+                onClick={() => onSelectProject(proj)} 
+                isGalleryItem={false} 
+                index={idx}
+                shape={getShapeForCategory(proj.category)}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section ref={targetRef} className="relative h-[300vh] mt-20 border-t border-card-border/50 w-screen left-1/2 -translate-x-1/2">
+    <section id="featured" ref={targetRef} className="relative h-[300vh] mt-20 border-t border-card-border/50 w-screen left-1/2 -translate-x-1/2">
       <div className="sticky top-0 h-screen flex items-center overflow-hidden w-screen">
         
-        {/* Parallax Background Typography */}
         <motion.div 
           style={{ x: parallaxX }}
           className="absolute whitespace-nowrap text-[20vw] font-bold text-white/[0.15] pointer-events-none select-none z-0 tracking-tighter"
@@ -76,14 +108,13 @@ export default function FlowingGallery({ projects, onSelectProject }) {
           PROJECTS 2024-2026 / RESEARCH & DEVELOPMENT
         </motion.div>
 
-        {/* The main horizontal track */}
         <motion.div 
           style={{ x }}
           className="flex z-10 w-max items-center h-full"
         >
           <div className="w-[10vw] shrink-0"></div>
 
-          <div className="w-[80vw] md:w-[35vw] shrink-0 mr-[10vw] flex flex-col justify-center">
+          <div ref={titleRef} className="w-[80vw] md:w-[35vw] shrink-0 mr-[10vw] flex flex-col justify-center">
             <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 font-fira tracking-tight leading-tight">Flowing<br/>Gallery</h2>
             <p className="text-text-muted text-lg max-w-sm">A horizontal narrative journey through flagship web applications, machine learning deployments, and published research papers.</p>
           </div>
@@ -95,6 +126,8 @@ export default function FlowingGallery({ projects, onSelectProject }) {
                   {...proj} 
                   onClick={() => onSelectProject(proj)} 
                   isGalleryItem={true}
+                  index={idx}
+                  shape={getShapeForCategory(proj.category)}
                 />
               </div>
               <div className="w-[5vw] shrink-0"></div>

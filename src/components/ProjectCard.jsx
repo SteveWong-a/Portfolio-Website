@@ -1,36 +1,11 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform, useInView } from 'motion/react';
+import { motion, useMotionValue, useSpring, useTransform, useInView, useReducedMotion } from 'motion/react';
 import { useRef, useEffect, useState } from 'react';
 
-// Variants for the stagger effect
-const containerVariants = {
-  hidden: { 
-    clipPath: "inset(0 100% 0 0)",
-  },
-  visible: {
-    clipPath: "inset(0 0 0 0)",
-    transition: {
-      duration: 0.8,
-      ease: [0.76, 0, 0.24, 1], // Custom elastic-like ease
-      staggerChildren: 0.1,
-      delayChildren: 0.3
-    }
-  }
-};
+// We'll define variants inside the component to respond to useReducedMotion
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 24
-    }
-  }
-};
+import { useGalleryStore } from '@/store/useGalleryStore';
 
 export default function ProjectCard({ 
   category, 
@@ -42,11 +17,51 @@ export default function ProjectCard({
   codeLink, 
   icon,
   onClick,
-  isGalleryItem = false
+  isGalleryItem = false,
+  index = 0,
+  shape = 'DEFAULT_FIELD'
 }) {
   const ref = useRef(null);
   // Trigger animation when the card scrolls horizontally into view
   const isInView = useInView(ref, { once: false, margin: "-100px" });
+
+  useEffect(() => {
+    if (isGalleryItem && isInView) {
+      useGalleryStore.getState().setActiveProject(index, shape);
+    }
+  }, [isInView, isGalleryItem, index, shape]);
+
+  const shouldReduceMotion = useReducedMotion();
+
+  const containerVariants = {
+    hidden: { 
+      clipPath: shouldReduceMotion ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+      opacity: shouldReduceMotion ? 0 : 1
+    },
+    visible: {
+      clipPath: "inset(0 0 0 0)",
+      opacity: 1,
+      transition: shouldReduceMotion ? { duration: 0.3 } : {
+        duration: 0.8,
+        ease: [0.76, 0, 0.24, 1],
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: shouldReduceMotion ? { duration: 0.3 } : {
+        type: "spring",
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -61,6 +76,8 @@ export default function ProjectCard({
   const [isCoarse, setIsCoarse] = useState(false);
 
   useEffect(() => {
+    if (shouldReduceMotion) return;
+
     const checkCoarse = window.matchMedia('(pointer: coarse)').matches;
     setIsCoarse(checkCoarse);
 
@@ -108,7 +125,7 @@ export default function ProjectCard({
   }
 
   const handleMouseMove = (e) => {
-    if (isCoarse) return;
+    if (shouldReduceMotion || isCoarse) return;
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const width = rect.width;
@@ -133,6 +150,7 @@ export default function ProjectCard({
 
   return (
     <motion.div 
+      data-hud-target="PROJECT_CARD"
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -145,23 +163,23 @@ export default function ProjectCard({
       variants={isGalleryItem ? containerVariants : {}}
       initial={isGalleryItem ? "hidden" : false}
       animate={isGalleryItem ? (isInView ? "visible" : "hidden") : false}
-      whileTap={{ scale: 0.97 }}
-      whileHover={isGalleryItem ? { y: -5 } : {}}
-      className={`h-full bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 relative overflow-hidden flex flex-col group cursor-pointer ${hoverShadowClass} ${hoverBorderClass} transition-all duration-300 ${!isGalleryItem ? "scroll-reveal" : ""}`}
+      whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+      whileHover={shouldReduceMotion ? {} : (isGalleryItem ? { y: -5 } : {})}
+      className={`h-full bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-8 relative overflow-hidden flex flex-col group cursor-pointer ${hoverShadowClass} ${hoverBorderClass} transition-all duration-300 ${!isGalleryItem ? "scroll-reveal" : ""}`}
     >
       <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r ${gradientClass} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}></div>
       
       {/* Background pseudo-element for scale animation */}
       <motion.div 
         className="absolute inset-0 z-[-1] opacity-5 bg-gradient-to-br from-white/10 to-transparent"
-        initial={isGalleryItem ? { scale: 1.2 } : { scale: 1 }}
-        animate={isGalleryItem ? (isInView ? { scale: 1 } : { scale: 1.2 }) : { scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        initial={isGalleryItem && !shouldReduceMotion ? { scale: 1.2 } : { scale: 1 }}
+        animate={isGalleryItem && !shouldReduceMotion ? (isInView ? { scale: 1 } : { scale: 1.2 }) : { scale: 1 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 200, damping: 20 }}
       />
 
       <div className="w-full relative z-10">
         <motion.div variants={itemVariants} className="flex justify-between items-start mb-4">
-          <span className={`text-xs font-semibold tracking-wider uppercase ${subtitleClass} opacity-80`}>{category}</span>
+          <span className={`text-xs font-mono tracking-wider text-cyan-400/80 uppercase`}>{category}</span>
           <span className={`text-xl transition-transform duration-300 group-hover:scale-110 ${subtitleClass}`}>{icon}</span>
         </motion.div>
         <motion.h3 variants={itemVariants} className={`text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight transition-colors ${titleHoverClass}`}>{title}</motion.h3>
@@ -170,7 +188,7 @@ export default function ProjectCard({
         </motion.div>
         <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mt-6">
           {tags?.map((tag, i) => (
-            <span key={i} className="text-xs font-mono bg-white/10 text-white/90 px-2.5 py-1 rounded border border-white/10">
+            <span key={i} className="text-xs font-mono tracking-wider text-cyan-400/80 bg-white/10 px-2.5 py-1 rounded-sm border border-white/10">
               {tag}
             </span>
           ))}
@@ -179,8 +197,8 @@ export default function ProjectCard({
       
       {/* We hide the external links on the card because they are now inside the OpenPanel drawer */}
       <motion.div variants={itemVariants} className="mt-auto pt-6 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span className={`text-xs font-medium flex items-center gap-2 ${subtitleClass}`}>
-          View Case Study <i className="fa-solid fa-arrow-right"></i>
+        <span className={`text-xs font-mono tracking-wider flex items-center gap-2 text-cyan-400/80`}>
+          VIEW CASE STUDY <i className="fa-solid fa-arrow-right"></i>
         </span>
       </motion.div>
     </motion.div>
