@@ -539,7 +539,7 @@ export default function ThreeBackground({ isStarted }) {
                 vec3 techOrange = vec3(0.91, 0.29, 0.15); // #E84A27
                 
                 vec3 finalColor = cga.rgb;
-                finalColor += intensityGreen * neonGreen * 2.0;
+                finalColor += intensityGreen * neonGreen * 1.0;
                 finalColor += intensityOrange * techOrange * 1.0;
                 
                 vec4 color = vec4(finalColor, cga.a);
