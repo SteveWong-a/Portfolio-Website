@@ -66,12 +66,12 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
-                <span className="text-sm font-mono tracking-wider uppercase text-cyan-400/80 mb-2 block">{project.category}</span>
+                <span className="text-sm font-mono tracking-wider uppercase text-[#00FFFF]/80 mb-2 block">{project.category}</span>
                 <h2 className="text-3xl font-bold text-white mb-6 tracking-tight">{project.title}</h2>
                 
                 <div className="flex flex-wrap gap-2 mb-8">
                   {project.tags?.map((tag, i) => (
-                    <span key={i} className="text-xs font-mono tracking-wider bg-white/5 text-cyan-400/80 px-3 py-1.5 rounded-sm border border-white/10">
+                    <span key={i} className="text-xs font-mono tracking-wider bg-white/5 text-[#00FFFF]/80 px-3 py-1.5 rounded-sm border border-white/10">
                       {tag}
                     </span>
                   ))}
@@ -84,7 +84,7 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 transition={{ delay: 0.3, duration: 0.4 }}
                 className="prose prose-invert max-w-none mb-10 text-text-main/90 leading-relaxed font-light space-y-6"
               >
-                <div className="bg-white/5 p-4 rounded-sm border border-white/5 text-sm italic border-l-2 border-l-cyan-400/80">
+                <div className="bg-white/5 p-4 rounded-sm border border-white/5 text-sm italic border-l-2 border-l-[#00FFFF]/80">
                   {project.description}
                 </div>
 
@@ -109,12 +109,12 @@ export default function OpenPanel({ project, isOpen, onClose }) {
                 className="mt-auto pt-6 border-t border-white/10 flex flex-wrap gap-4"
               >
                 {project.demoLink && (
-                  <a href={project.demoLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px] text-center bg-cyan-400/20 text-cyan-400 py-3 px-6 rounded-sm font-semibold transition-all hover:bg-cyan-400/30 hover:shadow-glow flex items-center justify-center gap-2 border border-cyan-400/50">
+                  <a href={project.demoLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px] text-center bg-[#00FFFF]/20 text-[#00FFFF] py-3 px-6 rounded-sm font-mono tracking-wider font-semibold transition-all hover:bg-[#00FFFF]/30 hover:shadow-glow flex items-center justify-center gap-2 border border-[#00FFFF]/50">
                     {project.demoText || <>Launch Demo <i className="fa-solid fa-arrow-up-right-from-square"></i></>}
                   </a>
                 )}
                 {project.codeLink && (
-                  <a href={project.codeLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[150px] text-center bg-white/5 text-white py-3 px-6 rounded-sm font-medium transition-all hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2">
+                  <a href={project.codeLink} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[150px] text-center bg-white/5 text-white py-3 px-6 rounded-sm font-mono tracking-wider transition-all hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2">
                     View Code <i className="fa-brands fa-github"></i>
                   </a>
                 )}

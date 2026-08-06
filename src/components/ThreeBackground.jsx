@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { useReducedMotion } from 'motion/react';
+import { useReducedMotion, useScroll, useVelocity, useSpring } from 'motion/react';
 import { useStore } from '@/store/useStore';
 import { useGalleryStore } from '@/store/useGalleryStore';
 
@@ -22,6 +22,11 @@ export default function ThreeBackground({ isStarted }) {
     const isPanelOpenRef = useRef(isPanelOpen);
     const shouldReduceMotion = useReducedMotion();
     const reduceMotionRef = useRef(shouldReduceMotion);
+
+    // Framer Motion scroll velocity tracking
+    const { scrollY } = useScroll();
+    const scrollVelocity = useVelocity(scrollY);
+    const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
 
     useEffect(() => {
         isPanelOpenRef.current = isPanelOpen;
@@ -521,7 +526,23 @@ export default function ThreeBackground({ isStarted }) {
                 vec4 cga = texture2D(tDiffuse, uv);
                 vec4 cb = texture2D(tDiffuse, uv - vec2(uOffset, uOffset * 0.5));
                 
-                vec4 color = vec4(cr.r, cga.g, cb.b, cga.a);
+                // Extract bleeding edges
+                vec3 edgeGreenRGB = max(vec3(0.0), cr.rgb - cga.rgb);
+                vec3 edgeOrangeRGB = max(vec3(0.0), cb.rgb - cga.rgb);
+                
+                // Convert edge to a scalar intensity since the base shapes are Cyan (lacking Red)
+                float intensityGreen = max(edgeGreenRGB.r, max(edgeGreenRGB.g, edgeGreenRGB.b));
+                float intensityOrange = max(edgeOrangeRGB.r, max(edgeOrangeRGB.g, edgeOrangeRGB.b));
+                
+                // Colorize the edges for Data Telemetry
+                vec3 neonGreen = vec3(0.22, 1.0, 0.08); // #39FF14
+                vec3 techOrange = vec3(0.91, 0.29, 0.15); // #E84A27
+                
+                vec3 finalColor = cga.rgb;
+                finalColor += intensityGreen * neonGreen * 2.0;
+                finalColor += intensityOrange * techOrange * 1.0;
+                
+                vec4 color = vec4(finalColor, cga.a);
                 
                 // Subtle film grain noise
                 float noise = (random(uv) - 0.5) * 0.05;
@@ -855,6 +876,7 @@ export default function ThreeBackground({ isStarted }) {
     }
 
 
+
     async function initShapesAndTimeline() {
         const dispatchProgress = (val) => {
             window.dispatchEvent(new CustomEvent('three-load-progress', { detail: { progress: val } }));
@@ -880,7 +902,6 @@ export default function ThreeBackground({ isStarted }) {
         
         const transitShape = generateTransit(PARTICLE_COUNT);
         dispatchProgress(100);
-
 
 
 
@@ -959,20 +980,17 @@ export default function ThreeBackground({ isStarted }) {
             
             // 2. Track Scroll Velocity for Signature Post-Processing
             if (!reduceMotionRef.current && useGalleryStore.getState().isIntroFinished) {
-                const currentScrollY = window.scrollY;
-                const scrollVelocity = currentScrollY - lastScrollY;
-                lastScrollY = currentScrollY;
+                // Read from Framer Motion's useSpring value directly
+                const velocity = smoothVelocity.get();
                 
-                // Cap the target aberration. A fast scroll is ~50-80px per frame.
-                // 50 * 0.002 = 0.1 max aberration.
-                const targetAberration = Math.min(Math.abs(scrollVelocity) * 0.002, 0.08);
+                // Cap the target aberration. A fast scroll is ~3000px/s velocity.
+                // Map that velocity to a max aberration of 0.1
+                const targetAberration = Math.min(Math.abs(velocity) * 0.00003, 0.1);
                 
-                // Spring physics easing towards the target
-                currentAberration += (targetAberration - currentAberration) * 0.15;
-                postMaterial.uniforms.uOffset.value = currentAberration;
+                // The spring already smooths it, so we can just apply it directly
+                postMaterial.uniforms.uOffset.value = targetAberration;
             } else {
-                currentAberration += (0.0 - currentAberration) * 0.15;
-                postMaterial.uniforms.uOffset.value = currentAberration;
+                postMaterial.uniforms.uOffset.value = 0.0;
             }
 
             // 3. Render full-screen quad to the actual screen

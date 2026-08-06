@@ -17,17 +17,6 @@ import FlowingGallery from '@/components/FlowingGallery';
 import VisionHudOverlay from '@/components/VisionHudOverlay';
 
 const FEATURED_PROJECTS = [
-
-  {
-    category: "Web Application & Health Tech",
-    icon: <i className="fa-solid fa-glass-water" style={{ color: 'var(--color-accent-primary)' }}></i>,
-    title: "Hydrio — Water Intake Tracker",
-    description: "A real-time web application designed to help users establish healthy hydration habits. Features real-time water logging, customizable daily goals, interactive hydration visualizers, automated reminder triggers, and user account persistence.",
-    tags: ["JavaScript", "Firebase", "HTML5/CSS3", "Responsive Web"],
-    demoLink: "https://water-drinking-reminder-933bf.web.app/",
-    demoText: <>Launch Application <i className="fa-solid fa-arrow-up-right-from-square"></i></>
-  },
-
   {
     category: "Machine Learning & Econometrics",
     icon: <i className="fa-solid fa-chart-line" style={{ color: 'var(--color-accent-green)' }}></i>,
@@ -36,39 +25,6 @@ const FEATURED_PROJECTS = [
     tags: ["Python", "Scikit-Learn", "Predictive Modeling", "Data Analysis"],
     demoLink: "https://wp0.vanderbilt.edu/youngscientistjournal/article/identifying-reliable-clients-for-microlending-a-data-driven-approach",
     demoText: <>Read Published Paper <i className="fa-solid fa-arrow-up-right-from-square"></i></>
-  },
-
-  {
-    category: "Astrophysics & Data Analysis",
-    icon: <i className="fa-solid fa-satellite" style={{ color: 'var(--color-accent-secondary)' }}></i>,
-    title: "NASA GMU Exoplanet Research Paper",
-    description: "Published astronomical research analyzing exoplanet candidate transit observations from the GMU Telescope. Mastered AstroImageJ for multi-aperture photometry and transit depth modeling, classifying TOI-3649.01 within the MARS repository in collaboration with NASA and GMU mentors.",
-    tags: ["Python", "AstroImageJ", "Photometry", "NASA MARS Repository"],
-    demoLink: "https://doi.org/10.13021/MARS/15188",
-    demoText: <>Read Research Paper (DOI) <i className="fa-solid fa-book-open"></i></>
-  },
-
-  {
-    category: "Machine Learning & Vision Models",
-    icon: <i className="fa-solid fa-eye" style={{ color: 'var(--color-accent-green)' }}></i>,
-    title: "Progressive Vision Language Model",
-    description: "Developed and trained a progressive vision-language model using temporal checkpoints. Integrated with Hugging Face for robust model deployment and inference.",
-    tags: ["PyTorch", "Vision Language Model", "Hugging Face"],
-    demoLink: "https://huggingface.co/SteveaWong/smolvlm-temporal-checkpoints",
-    demoText: <>View Checkpoints <i className="fa-solid fa-arrow-up-right-from-square"></i></>,
-    codeLink: "https://github.com/SteveWong-a/Progessive-Vision-Language-Model"
-  }
-];
-
-const OTHER_PROJECTS = [
-  {
-    category: "Sports Analytics Web App",
-    icon: <i className="fa-solid fa-stopwatch" style={{ color: 'var(--color-accent-primary)' }}></i>,
-    title: "Swimming Lap Splits Tracker",
-    description: "Full-stack web application built for competitive swim coaches and athletes to record, track, and visualize lap split times, race pace distributions, and swimmer progression metrics over time.",
-    tags: ["JavaScript", "Firebase Auth & Database", "Data Analytics"],
-    demoLink: "https://swimming-splits.web.app/login",
-    demoText: <>Launch Swimming App <i className="fa-solid fa-arrow-up-right-from-square"></i></>
   },
   {
     category: "Civic Tech & Web",
@@ -80,6 +36,22 @@ const OTHER_PROJECTS = [
     demoText: <>Visit Transit Blog <i className="fa-solid fa-arrow-up-right-from-square"></i></>
   },
   {
+    category: "Astrophysics & Data Analysis",
+    icon: <i className="fa-solid fa-satellite" style={{ color: 'var(--color-accent-secondary)' }}></i>,
+    title: "NASA GMU Exoplanet Research Paper",
+    description: "Published astronomical research analyzing exoplanet candidate transit observations from the GMU Telescope. Mastered AstroImageJ for multi-aperture photometry and transit depth modeling, classifying TOI-3649.01 within the MARS repository in collaboration with NASA and GMU mentors.",
+    tags: ["Python", "AstroImageJ", "Photometry", "NASA MARS Repository"],
+    demoLink: "https://doi.org/10.13021/MARS/15188",
+    demoText: <>Read Research Paper (DOI) <i className="fa-solid fa-book-open"></i></>
+  },
+  {
+    category: "Student Researcher @COSMOS",
+    icon: <i className="fa-solid fa-brain" style={{ color: 'var(--color-accent-secondary)' }}></i>,
+    title: "UCLA",
+    description: "July 2025 – August 2025. Modeled rat neural spatial navigation by applying single and multi-layer perceptrons to decode complex biological place-cell signals. Collaborated within a brain-inspired computing cohort to analyze direction-sensing data, bridging biological neural networks with computational models.",
+    tags: ["Machine Learning", "Perceptrons", "Neural Networks", "Biological Computing"]
+  },
+  {
     category: "Education & Web Design",
     icon: <i className="fa-solid fa-laptop-code" style={{ color: 'var(--color-accent-green)' }}></i>,
     title: "Academic Leadership Web Portals",
@@ -87,11 +59,49 @@ const OTHER_PROJECTS = [
     tags: ["Web Design", "Tutoring Portal", "DVHS Leadership"]
   },
   {
+    category: "Data Analyst Intern",
+    icon: <i className="fa-solid fa-database" style={{ color: 'var(--color-accent-primary)' }}></i>,
+    title: "Readyfly AI Startup",
+    description: "November 2023 – Present. Designed and implemented data cleanup and sorting algorithms for a large dataset of job listings. Developed a database schema and queries to organize and retrieve job listing data. Automated data processing and visualization using Python scripts. Collaborated with team members to integrate data analysis into an AI Job report.",
+    tags: ["Python", "Data Analysis", "SQL / Databases", "Automation"]
+  },
+];
+
+const OTHER_PROJECTS = [
+  {
+    category: "Web Application & Health Tech",
+    icon: <i className="fa-solid fa-glass-water" style={{ color: 'var(--color-accent-primary)' }}></i>,
+    title: "Hydrio — Water Intake Tracker",
+    description: "A real-time web application designed to help users establish healthy hydration habits. Features real-time water logging, customizable daily goals, interactive hydration visualizers, automated reminder triggers, and user account persistence.",
+    tags: ["JavaScript", "Firebase", "HTML5/CSS3", "Responsive Web"],
+    demoLink: "https://water-drinking-reminder-933bf.web.app/",
+    demoText: <>Launch Application <i className="fa-solid fa-arrow-up-right-from-square"></i></>
+  },
+  {
+    category: "Sports Analytics Web App",
+    icon: <i className="fa-solid fa-stopwatch" style={{ color: 'var(--color-accent-primary)' }}></i>,
+    title: "Swimming Lap Splits Tracker",
+    description: "Full-stack web application built for competitive swim coaches and athletes to record, track, and visualize lap split times, race pace distributions, and swimmer progression metrics over time.",
+    tags: ["JavaScript", "Firebase Auth & Database", "Data Analytics"],
+    demoLink: "https://swimming-splits.web.app/login",
+    demoText: <>Launch Swimming App <i className="fa-solid fa-arrow-up-right-from-square"></i></>
+  },
+  {
     category: "Engineering & Community Leadership",
     icon: <i className="fa-solid fa-campground" style={{ color: 'var(--color-accent-primary)' }}></i>,
     title: "Eagle Scout Sports Storage Project",
     description: "Directed a 120-hour engineering leadership project managing material budget, design, and directing 430+ volunteer hours to build custom weatherproof sports storage structures for IFGF Church.",
     tags: ["BSA Eagle Scout", "Project Management", "430+ Vol. Hours"]
+  },
+  {
+    category: "Machine Learning & Vision Models",
+    icon: <i className="fa-solid fa-eye" style={{ color: 'var(--color-accent-green)' }}></i>,
+    title: "Progressive Vision Language Model",
+    description: "Developed and trained a progressive vision-language model using temporal checkpoints. Integrated with Hugging Face for robust model deployment and inference.",
+    tags: ["PyTorch", "Vision Language Model", "Hugging Face"],
+    demoLink: "https://huggingface.co/SteveaWong/smolvlm-temporal-checkpoints",
+    demoText: <>View Checkpoints <i className="fa-solid fa-arrow-up-right-from-square"></i></>,
+    codeLink: "https://github.com/SteveWong-a/Progessive-Vision-Language-Model"
   }
 ];
 
@@ -159,10 +169,9 @@ export default function Home() {
       <OpenPanel isOpen={!!selectedProject} project={selectedProject} onClose={() => setSelectedProject(null)} />
       <VisionHudOverlay />
 
-      <main 
-        className={`max-w-6xl mx-auto px-6 pt-24 pb-24 relative z-10 transition-all duration-1000 ${
-          isHudActive ? 'contrast-[1.2] brightness-90 hue-rotate-90 saturate-[1.5]' : ''
-        }`}
+      <main
+        className={`max-w-6xl mx-auto px-6 pt-24 pb-24 relative z-10 transition-all duration-1000 ${isHudActive ? 'contrast-[1.2] brightness-90 hue-rotate-90 saturate-[1.5]' : ''
+          }`}
       >
         <div data-hud-target="HERO_SECTION">
           <Hero />

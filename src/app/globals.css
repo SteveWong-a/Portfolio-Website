@@ -4,7 +4,7 @@
   --color-bg-color: #0d1117;
   --color-card-bg: rgba(22, 27, 34, 0.75);
   --color-card-border: rgba(48, 54, 61, 0.8);
-  --color-accent-primary: #58a6ff;
+  --color-accent-primary: #00FFFF;
   --color-accent-secondary: #bc8cff;
   --color-accent-green: #3fb950;
   
@@ -12,9 +12,9 @@
   --color-text-bold: #f0f6fc;
   --color-text-muted: #8b949e;
 
-  --background-image-gradient-accent: linear-gradient(135deg, #58a6ff 0%, #bc8cff 100%);
+  --background-image-gradient-accent: linear-gradient(135deg, #00FFFF 0%, #bc8cff 100%);
   
-  --shadow-glow: 0 10px 30px -10px rgba(88, 166, 255, 0.2);
+  --shadow-glow: 0 10px 30px -10px rgba(0, 255, 255, 0.2);
 
   --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-fira: "Fira Code", monospace;
@@ -37,7 +37,7 @@ body::before {
   width: 100vw;
   height: 100vh;
   background:
-      radial-gradient(circle at 15% 15%, rgba(88, 166, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 15% 15%, rgba(0, 255, 255, 0.08) 0%, transparent 40%),
       radial-gradient(circle at 85% 65%, rgba(188, 140, 255, 0.08) 0%, transparent 40%);
   pointer-events: none;
   z-index: -1;

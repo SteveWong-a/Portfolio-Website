@@ -68,7 +68,7 @@ export default function VisionHudOverlay() {
           <motion.div
             animate={{ top: ['-10%', '110%'] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            className="absolute left-0 w-full h-[2px] bg-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,1)] z-10"
+            className="absolute left-0 w-full h-[2px] bg-[#00FFFF]/60 shadow-[0_0_20px_rgba(0,255,255,1)] z-10"
           />
           
           {/* Subtle Grid Overlay */}
@@ -78,7 +78,7 @@ export default function VisionHudOverlay() {
           {targets.map((target, idx) => (
             <div
               key={idx}
-              className="absolute border border-cyan-400/50 shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-all duration-75 ease-linear"
+              className="absolute border border-[#00FFFF]/50 shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all duration-75 ease-linear"
               style={{
                 top: target.top,
                 left: target.left,
@@ -87,26 +87,26 @@ export default function VisionHudOverlay() {
               }}
             >
               {/* Corner Brackets */}
-              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-cyan-400" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-cyan-400" />
-              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-cyan-400" />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-cyan-400" />
+              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-[#00FFFF]" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-[#00FFFF]" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-[#00FFFF]" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-[#00FFFF]" />
 
               {/* Data Tag */}
-              <div className="absolute -top-6 left-0 bg-cyan-400/10 border border-cyan-400/30 backdrop-blur-sm px-2 py-0.5 whitespace-nowrap font-mono text-[10px] text-cyan-400/80 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span>
+              <div className="absolute -top-6 left-0 bg-[#00FFFF]/10 border border-[#00FFFF]/30 backdrop-blur-sm px-2 py-0.5 whitespace-nowrap font-mono text-[10px] text-[#00FFFF]/80 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-[#00FFFF] rounded-full animate-pulse"></span>
                 TARGET: {target.type} // CONF: {(95 + Math.random() * 4).toFixed(1)}%
               </div>
             </div>
           ))}
           
           {/* Global HUD Reticle / Border overlay */}
-          <div className="absolute inset-4 border border-cyan-400/20 rounded-sm" />
-          <div className="absolute top-8 left-8 font-mono text-cyan-400/80 text-xs tracking-[0.2em] flex flex-col gap-1">
+          <div className="absolute inset-4 border border-[#00FFFF]/20 rounded-sm" />
+          <div className="absolute top-8 left-8 font-mono text-[#00FFFF]/80 text-xs tracking-[0.2em] flex flex-col gap-1">
             <span>SYS.OP.NORMAL</span>
             <span>VISION_MODE: ACTIVE</span>
           </div>
-          <div className="absolute bottom-8 right-8 font-mono text-cyan-400/80 text-xs tracking-[0.2em] text-right">
+          <div className="absolute bottom-8 right-8 font-mono text-[#00FFFF]/80 text-xs tracking-[0.2em] text-right">
             <span>TRACKING: {targets.length} OBJ</span>
           </div>
         </motion.div>

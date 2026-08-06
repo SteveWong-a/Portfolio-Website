@@ -179,7 +179,7 @@ export default function ProjectCard({
 
       <div className="w-full relative z-10">
         <motion.div variants={itemVariants} className="flex justify-between items-start mb-4">
-          <span className={`text-xs font-mono tracking-wider text-cyan-400/80 uppercase`}>{category}</span>
+          <span className={`text-xs font-mono tracking-wider text-[#00FFFF]/80 uppercase`}>{category}</span>
           <span className={`text-xl transition-transform duration-300 group-hover:scale-110 ${subtitleClass}`}>{icon}</span>
         </motion.div>
         <motion.h3 variants={itemVariants} className={`text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight transition-colors ${titleHoverClass}`}>{title}</motion.h3>
@@ -188,7 +188,7 @@ export default function ProjectCard({
         </motion.div>
         <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mt-6">
           {tags?.map((tag, i) => (
-            <span key={i} className="text-xs font-mono tracking-wider text-cyan-400/80 bg-white/10 px-2.5 py-1 rounded-sm border border-white/10">
+            <span key={i} className="text-xs font-mono tracking-wider text-[#00FFFF]/80 bg-white/10 px-2.5 py-1 rounded-sm border border-white/10">
               {tag}
             </span>
           ))}
@@ -197,7 +197,7 @@ export default function ProjectCard({
       
       {/* We hide the external links on the card because they are now inside the OpenPanel drawer */}
       <motion.div variants={itemVariants} className="mt-auto pt-6 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span className={`text-xs font-mono tracking-wider flex items-center gap-2 text-cyan-400/80`}>
+        <span className={`text-xs font-mono tracking-wider flex items-center gap-2 text-[#00FFFF]/80`}>
           VIEW CASE STUDY <i className="fa-solid fa-arrow-right"></i>
         </span>
       </motion.div>

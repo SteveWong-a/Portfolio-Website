@@ -73,7 +73,7 @@ function DockItem({ item, index, hoveredIndex, setHoveredIndex, playTick }) {
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute -top-12 px-3 py-1.5 bg-card-bg border border-card-border rounded-sm text-xs font-mono tracking-wider text-cyan-400/80 whitespace-nowrap shadow-xl"
+          className="absolute -top-12 px-3 py-1.5 bg-card-bg border border-card-border rounded-sm text-xs font-mono tracking-wider text-[#00FFFF]/80 whitespace-nowrap shadow-xl"
         >
           {item.label}
         </motion.div>
@@ -127,7 +127,7 @@ export default function Dock() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={toggleHud}
-          className={`w-12 h-12 flex items-center justify-center rounded-sm transition-colors border ${isHudActive ? 'bg-cyan-400/20 text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(0,255,208,0.4)]' : 'bg-white/5 hover:bg-white/20 text-text-main hover:text-white border-transparent hover:border-white/20'}`}
+          className={`w-12 h-12 flex items-center justify-center rounded-sm transition-colors border ${isHudActive ? 'bg-[#00FFFF]/20 text-[#00FFFF] border-[#00FFFF]/50 shadow-[0_0_15px_rgba(0,255,255,0.4)]' : 'bg-white/5 hover:bg-white/20 text-text-main hover:text-white border-transparent hover:border-white/20'}`}
           title="Toggle Vision HUD (Press 'H')"
         >
           <i className="fa-solid fa-vr-cardboard text-lg"></i>
@@ -138,14 +138,14 @@ export default function Dock() {
           <motion.button 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="w-12 h-12 flex items-center justify-center rounded-sm bg-cyan-400/20 text-cyan-400 border border-cyan-400/30 hover:bg-cyan-400/40 transition-colors"
+            className="w-12 h-12 flex items-center justify-center rounded-sm bg-[#00FFFF]/20 text-[#00FFFF] border border-[#00FFFF]/30 hover:bg-[#00FFFF]/40 transition-colors"
           >
             <i className="fa-solid fa-file-arrow-down text-lg"></i>
           </motion.button>
           
           <div className="absolute bottom-full mb-4 right-0 w-48 bg-card-bg border border-white/10 rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col p-2 backdrop-blur-md">
-            <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-cyan-400/80 hover:text-cyan-400 hover:bg-white/5 rounded-sm transition-colors">Product Design UI/UX</a>
-            <a href="/Steve_Wong_ML_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-cyan-400/80 hover:text-cyan-400 hover:bg-white/5 rounded-sm transition-colors">Machine Learning AI</a>
+            <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Product Design UI/UX</a>
+            <a href="/Steve_Wong_ML_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Machine Learning AI</a>
           </div>
         </div>
       </motion.nav>
