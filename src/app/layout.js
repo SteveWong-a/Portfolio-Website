@@ -3,10 +3,17 @@ import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
   title: "Steve Wong | Software Engineer & AI Researcher",
-  description: "Portfolio of Steve Wong, incoming UIUC Computer Engineering student specializing in full-stack development, computer vision, and data science.",
+  description: "Portfolio of Steve Wong, UIUC Computer Engineering student specializing in full-stack dev, computer vision, and AI.",
   openGraph: {
     type: "website",
-    images: ["/og-image.jpg"],
+    siteName: "Steve Wong Portfolio",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+      }
+    ],
   },
   twitter: {
     card: "summary_large_image",
