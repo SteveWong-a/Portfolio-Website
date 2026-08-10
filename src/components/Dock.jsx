@@ -144,8 +144,10 @@ export default function Dock() {
           </motion.button>
           
           <div className="absolute bottom-full mb-4 right-0 w-48 bg-card-bg border border-white/10 rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col p-2 backdrop-blur-md">
-            <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Product Design UI/UX</a>
-            <a href="/Steve_Wong_ML_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Machine Learning AI</a>
+            <a href="/Steve_Wong_Data_Science_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Data Science / ML</a>
+            <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">UI / UX Design</a>
+            <a href="/Steve_Wong_FullStack_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">Full-Stack SWE</a>
+            <a href="/Steve_Wong_General_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm font-mono tracking-wider text-[#00FFFF]/80 hover:text-[#00FFFF] hover:bg-white/5 rounded-sm transition-colors">General / Data</a>
           </div>
         </div>
       </motion.nav>

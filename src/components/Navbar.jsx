@@ -15,8 +15,10 @@ export default function Navbar() {
               Download Resume <i className="fa-solid fa-caret-down"></i>
             </a>
             <div className="absolute right-0 top-full mt-2 w-48 bg-card-bg border border-card-border rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col p-2 backdrop-blur-md">
-              <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">Product Design UI/UX</a>
-              <a href="/Steve_Wong_ML_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">Machine Learning AI</a>
+              <a href="/Steve_Wong_Data_Science_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">Data Science / ML</a>
+              <a href="/Steve_Wong_UIUX_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">UI / UX Design</a>
+              <a href="/Steve_Wong_FullStack_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">Full-Stack SWE</a>
+              <a href="/Steve_Wong_General_Resume.pdf" target="_blank" download className="block px-4 py-2 text-sm text-text-main hover:text-white hover:bg-white hover:bg-opacity-5 rounded-md transition-colors">General / Data</a>
             </div>
           </li>
         </ul>
