@@ -230,12 +230,112 @@ export default function ThreeBackground({ isStarted }) {
         }
 
         function getDefaultFieldPositions(particleCount) {
-            const arr = new Float32Array(particleCount * 2);
+            const arr = new Float32Array(particleCount * 3);
             for (let i = 0; i < particleCount; i++) {
                 arr[i * 3] = (Math.random() - 0.5) * 60;
                 arr[i * 3 + 1] = (Math.random() - 0.5) * 60;
                 arr[i * 3 + 2] = (Math.random() - 0.5) * 60;
             }
+            return arr;
+        }
+
+        // ============================================================
+        // 2b. SPLIT-PARTICLE SHAPES (for section scroll effect)
+        // Particles split: first half → left side, second half → right side
+        // ============================================================
+
+        function getSplitAILabShape(particleCount) {
+            const arr = new Float32Array(particleCount * 3);
+            const half = Math.floor(particleCount / 2);
+            const xOffset = 35; // Distance from center (world units)
+
+            // Generate mirrored neural constellation on each side
+            const nodesPerSide = 4;
+            const leftNodes = [];
+            const rightNodes = [];
+            for (let n = 0; n < nodesPerSide; n++) {
+                const y = (Math.random() - 0.5) * 20;
+                const z = (Math.random() - 0.5) * 10;
+                const xSpread = Math.random() * 10;
+                leftNodes.push({ x: -xOffset - xSpread, y, z });
+                rightNodes.push({ x: xOffset + xSpread, y, z });
+            }
+
+            function fillSide(startIdx, count, nodes, sideSign) {
+                for (let i = 0; i < count; i++) {
+                    const idx = (startIdx + i) * 3;
+                    const type = Math.random();
+                    if (type < 0.5) {
+                        // Cluster around a node
+                        const node = nodes[Math.floor(Math.random() * nodes.length)];
+                        const r = Math.random() * 5;
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.acos(2.0 * Math.random() - 1.0);
+                        arr[idx] = node.x + r * Math.sin(phi) * Math.cos(theta);
+                        arr[idx + 1] = node.y + r * Math.sin(phi) * Math.sin(theta);
+                        arr[idx + 2] = node.z + r * Math.cos(phi);
+                    } else if (type < 0.8) {
+                        // Connection streams between nodes
+                        const a = nodes[Math.floor(Math.random() * nodes.length)];
+                        const b = nodes[Math.floor(Math.random() * nodes.length)];
+                        const t = Math.random();
+                        arr[idx] = a.x + (b.x - a.x) * t + (Math.random() - 0.5) * 1.5;
+                        arr[idx + 1] = a.y + (b.y - a.y) * t + (Math.random() - 0.5) * 1.5;
+                        arr[idx + 2] = a.z + (b.z - a.z) * t + (Math.random() - 0.5) * 1.0;
+                    } else {
+                        // Ambient scatter around the side
+                        arr[idx] = sideSign * xOffset + (Math.random() - 0.5) * 20;
+                        arr[idx + 1] = (Math.random() - 0.5) * 25;
+                        arr[idx + 2] = (Math.random() - 0.5) * 15;
+                    }
+                }
+            }
+
+            fillSide(0, half, leftNodes, -1);
+            fillSide(half, particleCount - half, rightNodes, 1);
+            return arr;
+        }
+
+        function getSplitExperienceShape(particleCount) {
+            const arr = new Float32Array(particleCount * 3);
+            const half = Math.floor(particleCount / 2);
+            const xOffset = 35;
+
+            function fillSide(startIdx, count, sideSign) {
+                const rails = 3; // Vertical rail lines per side
+                const railSpacing = 5;
+                const railHeight = 25;
+
+                for (let i = 0; i < count; i++) {
+                    const idx = (startIdx + i) * 3;
+                    const type = Math.random();
+
+                    if (type < 0.4) {
+                        // Vertical rails — data stream lines
+                        const rail = Math.floor(Math.random() * rails);
+                        arr[idx] = sideSign * (xOffset + rail * railSpacing) + (Math.random() - 0.5) * 0.8;
+                        arr[idx + 1] = (Math.random() - 0.5) * railHeight;
+                        arr[idx + 2] = (Math.random() - 0.5) * 3;
+                    } else if (type < 0.7) {
+                        // Horizontal rungs connecting the rails
+                        const rungY = (Math.random() - 0.5) * railHeight;
+                        const t = Math.random();
+                        const x1 = sideSign * xOffset;
+                        const x2 = sideSign * (xOffset + (rails - 1) * railSpacing);
+                        arr[idx] = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 0.5;
+                        arr[idx + 1] = rungY + (Math.random() - 0.5) * 0.5;
+                        arr[idx + 2] = (Math.random() - 0.5) * 2;
+                    } else {
+                        // Ambient scatter
+                        arr[idx] = sideSign * xOffset + (Math.random() - 0.5) * 18;
+                        arr[idx + 1] = (Math.random() - 0.5) * 25;
+                        arr[idx + 2] = (Math.random() - 0.5) * 12;
+                    }
+                }
+            }
+
+            fillSide(0, half, -1);
+            fillSide(half, particleCount - half, 1);
             return arr;
         }
 
@@ -961,6 +1061,10 @@ export default function ThreeBackground({ isStarted }) {
             const clock = new THREE.Clock();
             let animationId;
 
+            // Section-aware scroll tracking
+            // When non-null, particles track the camera y-position to stay visible
+            let sectionMode = null; // 'ai-lab' | 'experience' | null
+
             // Elite Performance Monitor
             let frameCount = 0;
             let lastTime = performance.now();
@@ -1011,6 +1115,11 @@ export default function ThreeBackground({ isStarted }) {
 
                 // Sync background color with foreground
                 bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
+
+                // When in section mode, track particles to camera so they stay visible
+                if (sectionMode && useGalleryStore.getState().isIntroFinished) {
+                    particles.position.y = camera.position.y;
+                }
 
                 // Gentle oscillating rotation so text remains front-facing
                 if (!window.isAligning && !reduceMotionRef.current) {
@@ -1075,9 +1184,9 @@ export default function ThreeBackground({ isStarted }) {
                         }
 
                         // Reset mesh transforms from the intro text alignment so new shapes are visible
-                        gsap.to(particles.position, { x: 0, y: 0, z: 0, duration: 1.2, ease: "power2.out" });
-                        gsap.to(material.uniforms.uScale, { value: 1.5, duration: 1.2, ease: "power2.out" });
-                        gsap.to(bgMaterial.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 1.2 });
+                        gsap.to(particles.position, { x: 0, y: 0, z: 0, duration: 2.5, ease: "power3.out" });
+                        gsap.to(material.uniforms.uScale, { value: 1.5, duration: 2.5, ease: "power3.out" });
+                        gsap.to(bgMaterial.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 2.5 });
                         window.isAligning = false; // Restore normal rotation
 
                         updatePositionsToShape(newTarget);
@@ -1085,8 +1194,8 @@ export default function ThreeBackground({ isStarted }) {
                         gsap.killTweensOf(material.uniforms.uProgress);
                         gsap.to(material.uniforms.uProgress, {
                             value: 1.0,
-                            duration: 1.2,
-                            ease: "expo.out"
+                            duration: 3.0,
+                            ease: "power3.out"
                         });
                     }
                 }
@@ -1259,6 +1368,85 @@ export default function ThreeBackground({ isStarted }) {
                         camera.rotation.x = progress * (Math.PI / 4);
                     });
                 });
+
+                // ============================================================
+                // SECTION-AWARE PARTICLE SPLIT OBSERVER
+                // When AI Lab or Work Experience sections enter the viewport,
+                // particles split to left+right sides to frame the content.
+                // ============================================================
+                const SCROLL_PC = 3000;
+                const sectionObserver = new IntersectionObserver((entries) => {
+                    // Find which section(s) are currently intersecting
+                    let activeSection = null;
+                    for (const entry of entries) {
+                        if (entry.isIntersecting) {
+                            activeSection = entry.target.id; // 'ai-lab' or 'experience'
+                            break; // Prioritize whichever is intersecting
+                        }
+                    }
+
+                    if (activeSection && activeSection !== sectionMode) {
+                        sectionMode = activeSection;
+
+                        // Generate the appropriate split shape
+                        let newTarget;
+                        if (activeSection === 'ai-lab') {
+                            newTarget = getSplitAILabShape(SCROLL_PC);
+                        } else {
+                            newTarget = getSplitExperienceShape(SCROLL_PC);
+                        }
+
+                        // Reset mesh transforms and enable normal rotation
+                        window.isAligning = false;
+                        gsap.to(particles.position, { x: 0, z: 0, duration: 3.0, ease: "power3.out" });
+                        gsap.to(particles.rotation, { x: 0, y: 0, z: 0, duration: 3.0, ease: "power3.out" });
+                        gsap.to(material.uniforms.uScale, { value: 1.0, duration: 3.0, ease: "power3.out" });
+                        gsap.to(material.uniforms.uDriftStrength, { value: 0.08, duration: 3.0, ease: "power3.out" });
+
+                        // Morph to the split shape
+                        updatePositionsToShape(newTarget);
+                        gsap.killTweensOf(material.uniforms.uProgress);
+                        gsap.to(material.uniforms.uProgress, {
+                            value: 1.0,
+                            duration: 3.5,
+                            ease: "power3.out"
+                        });
+
+                        // Subtle color shift per section
+                        if (activeSection === 'ai-lab') {
+                            gsap.to(material.uniforms.uColor.value, { r: 0.45, g: 0.55, b: 1.0, duration: 2.5 });
+                        } else {
+                            gsap.to(material.uniforms.uColor.value, { r: 0.2, g: 0.9, b: 0.5, duration: 2.5 });
+                        }
+
+                        // Make background particles visible again
+                        gsap.to(bgMaterial.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 2.5 });
+
+                    } else if (!activeSection && sectionMode) {
+                        // Both sections left viewport — restore default scattered field
+                        sectionMode = null;
+                        const defaultTarget = getDefaultFieldPositions(SCROLL_PC);
+                        updatePositionsToShape(defaultTarget);
+                        gsap.killTweensOf(material.uniforms.uProgress);
+                        gsap.to(material.uniforms.uProgress, {
+                            value: 1.0,
+                            duration: 2.5,
+                            ease: "power3.out"
+                        });
+                        gsap.to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 2.5 });
+                    }
+                }, {
+                    threshold: 0.15
+                });
+
+                // Observe the target sections
+                const aiLabEl = document.getElementById('ai-lab');
+                const experienceEl = document.getElementById('experience');
+                if (aiLabEl) sectionObserver.observe(aiLabEl);
+                if (experienceEl) sectionObserver.observe(experienceEl);
+
+                // Store for cleanup
+                window.__sectionObserver = sectionObserver;
             }
 
             // ============================================================
@@ -1291,6 +1479,10 @@ export default function ThreeBackground({ isStarted }) {
             return () => {
                 unsubscribeGallery();
                 window.removeEventListener('resize', handleResize);
+                if (window.__sectionObserver) {
+                    window.__sectionObserver.disconnect();
+                    window.__sectionObserver = null;
+                }
                 if (animationId) cancelAnimationFrame(animationId);
                 renderer.dispose();
                 geometry.dispose();
