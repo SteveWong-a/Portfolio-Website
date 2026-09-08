@@ -425,21 +425,70 @@ export default function ThreeBackground({ isStarted }) {
         }
 
         // Canvas-based text generator for Steve Wong
+        // Responsive: sizes the text so it fits within the camera frustum at z=65
         function getTextPositions(text, scale) {
             const positions = new Float32Array(PARTICLE_COUNT * 3);
             const c = document.createElement('canvas');
-            c.width = 800; c.height = 800;
+
+            // Use a canvas that mirrors the viewport aspect ratio for accurate sampling
+            const aspect = window.innerWidth / window.innerHeight;
+            const canvasH = 800;
+            const canvasW = Math.round(canvasH * Math.max(aspect, 1));
+            c.width = canvasW; c.height = canvasH;
+
             const ctx = c.getContext('2d', { willReadFrequently: true });
-            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 800, 800);
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvasW, canvasH);
             ctx.fillStyle = '#fff';
-            ctx.font = '900 130px "Inter", sans-serif';
+
+            // Calculate the visible world width at camera z=65 (where the text is shown)
+            // FOV is 75 degrees; visible height = 2 * tan(fov/2) * z
+            const cameraZ = 65;
+            const vFOV = 75 * Math.PI / 180;
+            const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraZ;
+            const visibleWidth = visibleHeight * aspect;
+
+            // We want the rendered text to occupy at most ~60% of the visible width
+            // so it comfortably fits with breathing room on both sides
+            const maxTextFraction = 0.60;
+
+            // Measure the text at a reference font size to determine the scale factor
+            const refFontSize = 130;
+            ctx.font = `900 ${refFontSize}px "Inter", sans-serif`;
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(text, 400, 400);
-            const imgData = ctx.getImageData(0, 0, 800, 800).data;
+            const measured = ctx.measureText(text);
+            const refTextWidthPx = measured.width;
+
+            // Compute what font size keeps the text within the canvas at a size
+            // that maps to ≤ maxTextFraction of the visible world width.
+            //
+            // Pixel-to-world: each canvas pixel of text width → 0.1 world units (before SHAPE_SCALE*scale).
+            // So world width of text = refTextWidthPx * 0.1 * SHAPE_SCALE * scale
+            // We want: textWorldWidth ≤ maxTextFraction * visibleWidth
+            // => fontSize * (refTextWidthPx/refFontSize) * 0.1 * SHAPE_SCALE * scale ≤ maxTextFraction * visibleWidth
+            const maxWorldWidth = maxTextFraction * visibleWidth;
+            const worldPerPx = 0.1 * SHAPE_SCALE * scale;  // world units per canvas pixel of text width
+            const maxTextPx = maxWorldWidth / worldPerPx;   // max text width in canvas pixels
+            const fontScale = Math.min(1, maxTextPx / refTextWidthPx);
+            const fontSize = Math.round(refFontSize * fontScale);
+
+            console.log('[getTextPositions] viewport:', window.innerWidth, 'x', window.innerHeight,
+                '| visibleWidth:', visibleWidth.toFixed(1), '| refTextPx:', refTextWidthPx.toFixed(0),
+                '| fontScale:', fontScale.toFixed(3), '| fontSize:', fontSize,
+                '| fills:', (fontScale * refTextWidthPx * worldPerPx / visibleWidth * 100).toFixed(1) + '%');
+
+            ctx.font = `900 ${fontSize}px "Inter", sans-serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvasW / 2, canvasH / 2);
+
+            const imgData = ctx.getImageData(0, 0, canvasW, canvasH).data;
             const px = [];
-            for (let y = 0; y < 800; y += 3) {
-                for (let x = 0; x < 800; x += 3) {
-                    if (imgData[(y * 800 + x) * 4] > 50) px.push({ x: (x - 400) * 0.1, y: -(y - 400) * 0.1 });
+            const halfW = canvasW / 2;
+            const halfH = canvasH / 2;
+            for (let y = 0; y < canvasH; y += 3) {
+                for (let x = 0; x < canvasW; x += 3) {
+                    if (imgData[(y * canvasW + x) * 4] > 50) {
+                        px.push({ x: (x - halfW) * 0.1, y: -(y - halfH) * 0.1 });
+                    }
                 }
             }
             for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -1148,8 +1197,15 @@ export default function ThreeBackground({ isStarted }) {
                     const targetWorldY = ndcY * (height / 2);
 
                     // Calculate precise scale to match DOM text width
-                    // The 3D text is ~168 world units wide at uScale = 1.0
-                    const particleWorldWidth = 168;
+                    // Measure the actual particle text bounding box width from the target positions
+                    const tgtAttr = geometry.attributes.aTarget;
+                    let minX = Infinity, maxX = -Infinity;
+                    for (let i = 0; i < PARTICLE_COUNT; i++) {
+                        const x = tgtAttr.array[i * 3];
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                    }
+                    const particleWorldWidth = maxX - minX;
                     const fractionOfScreen = particleWorldWidth / width;
                     const targetScale = (rect.width / window.innerWidth) / fractionOfScreen;
 
