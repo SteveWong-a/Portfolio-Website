@@ -134,6 +134,24 @@ export default function Home() {
   }, [selectedProject, setPanelOpen]);
 
   useEffect(() => {
+    console.log(
+      `%c
+   _____ _______ ________      ________ 
+  / ____|__   __|  ____\\ \\    / /  ____|
+ | (___    | |  | |__   \\ \\  / /| |__   
+  \\___ \\   | |  |  __|   \\ \\/ / |  __|  
+  ____) |  | |  | |____   \\  /  | |____ 
+ |_____/   |_|  |______|   \\/   |______|
+                                        
+ Ah, a fellow developer! Looking under the hood? 
+ Try typing the Konami Code... 
+ Or maybe try typing 'glitch' ;)
+      `,
+      'color: #00FF41; font-family: monospace; font-size: 14px; font-weight: bold;'
+    );
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       // Don't trigger if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;

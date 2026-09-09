@@ -240,6 +240,30 @@ export default function ThreeBackground({ isStarted }) {
         }
 
         // ============================================================
+        // 2b. EASTER EGG SHAPES
+        // ============================================================
+        function getMatrixShape(particleCount) {
+            const arr = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                // Organize in vertical columns
+                const colSpacing = 2.5;
+                const col = Math.floor((Math.random() - 0.5) * 40);
+                const x = col * colSpacing;
+                
+                // Random height spread in the column
+                const y = (Math.random() - 0.5) * 80;
+                
+                // Depth layers
+                const z = (Math.random() - 0.5) * 40;
+                
+                arr[i * 3] = x;
+                arr[i * 3 + 1] = y;
+                arr[i * 3 + 2] = z;
+            }
+            return arr;
+        }
+
+        // ============================================================
         // 2b. SPLIT-PARTICLE SHAPES (for section scroll effect)
         // Particles split: first half → left side, second half → right side
         // ============================================================
@@ -802,6 +826,9 @@ export default function ThreeBackground({ isStarted }) {
         uniform float uDriftStrength;
         uniform float uScale;
         uniform float uTransitX;
+        uniform vec3 uBlackHolePos;
+        uniform float uBlackHoleStrength;
+        uniform float uAlphaOverride;
         attribute vec3 aTarget;
         attribute float aRandom;
 
@@ -829,6 +856,19 @@ export default function ThreeBackground({ isStarted }) {
             float breathe = snoise(pos * 0.1 + uTime * 0.15) * 0.5 * uProgress;
             pos += vec3(breathe);
 
+            // Black Hole Distortion — strong gravitational pull toward cursor
+            if (uBlackHoleStrength > 0.0) {
+                vec3 toHole = uBlackHolePos - pos;
+                float dist = length(toHole);
+                vec3 dir = toHole / max(dist, 0.01);
+                // Strong pull that reaches across the whole scene
+                // Close particles get sucked in hard, far ones still feel a gentle tug
+                float nearPull = smoothstep(50.0, 0.0, dist) * 0.9; // strong close pull
+                float farPull = 0.15 * uBlackHoleStrength / max(dist * 0.05, 0.1); // gentle far reach
+                float totalPull = clamp(nearPull + farPull, 0.0, 0.95) * uBlackHoleStrength;
+                pos = mix(pos, uBlackHolePos, totalPull);
+            }
+
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
             // Size attenuation
@@ -849,7 +889,8 @@ export default function ThreeBackground({ isStarted }) {
             gl_Position = projectionMatrix * mvPosition;
 
             // Alpha based on distance and progress
-            vAlpha = mix(0.3, 0.85, uProgress) + aRandom * 0.15;
+            float baseAlpha = mix(0.3, 0.85, uProgress) + aRandom * 0.15;
+            vAlpha = uAlphaOverride > 0.0 ? max(baseAlpha, uAlphaOverride) : baseAlpha;
             vRandom = aRandom;
         }
     `;
@@ -890,7 +931,10 @@ export default function ThreeBackground({ isStarted }) {
                 uDriftStrength: { value: 1.0 },
                 uScale: { value: 1.5 },
                 uTransitX: { value: -50.0 },
-                uColor: { value: new THREE.Color(0x58a6ff) }
+                uColor: { value: new THREE.Color(0x58a6ff) },
+                uBlackHolePos: { value: new THREE.Vector3(0, 0, 0) },
+                uBlackHoleStrength: { value: 0.0 },
+                uAlphaOverride: { value: 0.0 }
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
@@ -1058,11 +1102,7 @@ export default function ThreeBackground({ isStarted }) {
             // 7. ANIMATION LOOP
             // ============================================================
 
-            const clock = new THREE.Clock();
-            let animationId;
-
             // Section-aware scroll tracking
-            // When non-null, particles track the camera y-position to stay visible
             let sectionMode = null; // 'ai-lab' | 'experience' | null
 
             // Elite Performance Monitor
@@ -1071,9 +1111,80 @@ export default function ThreeBackground({ isStarted }) {
             let hasDegraded = false;
             let staticElapsed = 0; // Frozen time for reduced motion
 
-            // Velocity Tracker
-            let lastScrollY = window.scrollY;
-            let currentAberration = 0;
+            // Easter Egg States
+            let glitchEndTime = 0;
+            let blackHolePos = new THREE.Vector3();
+            const glitchCode = ['g', 'l', 'i', 't', 'c', 'h'];
+            let glitchIndex = 0;
+            const gravityVelocitiesX = new Float32Array(3000);
+            const gravityVelocitiesY = new Float32Array(3000);
+            let gravityInitialized = false;
+
+            const handleKeyDownEasterEggs = (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                // Glitch
+                if (e.key.toLowerCase() === glitchCode[glitchIndex]) {
+                    glitchIndex++;
+                    if (glitchIndex === glitchCode.length) {
+                        glitchEndTime = performance.now() + 5000;
+                        glitchIndex = 0;
+                    }
+                } else {
+                    glitchIndex = 0;
+                }
+            };
+            window.addEventListener('keydown', handleKeyDownEasterEggs);
+
+            // Black Hole Interaction — Shift+Click to attract particles to cursor
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            let blackHoleActive = false;
+            let bhStrengthTarget = 0;
+            const bhPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+            const handleMouseMoveBH = (e) => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                // Continuously update black hole position while active
+                if (blackHoleActive) {
+                    raycaster.setFromCamera(mouse, camera);
+                    raycaster.ray.intersectPlane(bhPlane, blackHolePos);
+                    material.uniforms.uBlackHolePos.value.copy(blackHolePos);
+                }
+            };
+            const handleMouseDownBH = (e) => {
+                if (e.shiftKey) {
+                    // Kill any existing release tweens first
+                    gsap.killTweensOf(material.uniforms.uBlackHoleStrength);
+                    blackHoleActive = true;
+                    bhStrengthTarget = 0.15; // Start gentle
+                    raycaster.setFromCamera(mouse, camera);
+                    raycaster.ray.intersectPlane(bhPlane, blackHolePos);
+                    material.uniforms.uBlackHolePos.value.copy(blackHolePos);
+                    material.uniforms.uBlackHoleStrength.value = 0.15;
+                }
+            };
+            const releaseBH = () => {
+                if (blackHoleActive) {
+                    blackHoleActive = false;
+                    bhStrengthTarget = 0;
+                    // Smoothly release particles back
+                    gsap.killTweensOf(material.uniforms.uBlackHoleStrength);
+                    gsap.to(material.uniforms.uBlackHoleStrength, { value: 0.0, duration: 2.0, ease: "power3.out" });
+                }
+            };
+            const handleMouseUpBH = () => releaseBH();
+            const handleKeyUpBH = (e) => {
+                if (e.key === 'Shift') releaseBH();
+            };
+            window.addEventListener('mousemove', handleMouseMoveBH);
+            window.addEventListener('mousedown', handleMouseDownBH);
+            window.addEventListener('mouseup', handleMouseUpBH);
+            window.addEventListener('keyup', handleKeyUpBH);
+
+            const clock = new THREE.Clock();
 
             function animate() {
                 animationId = requestAnimationFrame(animate);
@@ -1117,12 +1228,118 @@ export default function ThreeBackground({ isStarted }) {
                 bgMaterial.uniforms.uColor.value.copy(material.uniforms.uColor.value);
 
                 // When in section mode, track particles to camera so they stay visible
-                if (sectionMode && useGalleryStore.getState().isIntroFinished) {
+                if (sectionMode && useGalleryStore.getState().isIntroFinished && !useGalleryStore.getState().isGravityEnabled) {
                     particles.position.y = camera.position.y;
                 }
 
+                // Progressive black hole strength ramp while held
+                if (blackHoleActive) {
+                    bhStrengthTarget = Math.min(bhStrengthTarget + 0.008, 1.0);
+                    material.uniforms.uBlackHoleStrength.value = bhStrengthTarget;
+                }
+
+                // Gravity Easter Egg
+                if (useGalleryStore.getState().isGravityEnabled && !isPanelOpenRef.current) {
+                    const posAttr = geometry.attributes.position;
+                    const tgtAttr = geometry.attributes.aTarget;
+                    const progress = material.uniforms.uProgress.value;
+                    const scale = material.uniforms.uScale.value;
+
+                    // Calculate visible screen bounds in world coordinates
+                    const vFOV = THREE.MathUtils.degToRad(camera.fov);
+                    const visH = 2 * Math.tan(vFOV / 2) * camera.position.z;
+                    const visW = visH * camera.aspect;
+                    const floorY = -visH / 2 + particles.position.y;
+                    const ceilingY = visH / 2 + particles.position.y;
+                    const wallL = -visW / 2;
+                    const wallR = visW / 2;
+                    const drawCount = geometry.drawRange.count || 3000;
+
+                    // Mouse world position for interactive particle bouncing
+                    const mouseWorld = new THREE.Vector3();
+                    raycaster.setFromCamera(mouse, camera);
+                    raycaster.ray.intersectPlane(bhPlane, mouseWorld);
+
+                    // First frame: snapshot the actual rendered positions into the position buffer
+                    if (!gravityInitialized) {
+                        for (let i = 0; i < drawCount; i++) {
+                            const i3 = i * 3;
+                            posAttr.array[i3]     = (posAttr.array[i3]     + (tgtAttr.array[i3]     - posAttr.array[i3])     * progress) * scale;
+                            posAttr.array[i3 + 1] = (posAttr.array[i3 + 1] + (tgtAttr.array[i3 + 1] - posAttr.array[i3 + 1]) * progress) * scale;
+                            posAttr.array[i3 + 2] = (posAttr.array[i3 + 2] + (tgtAttr.array[i3 + 2] - posAttr.array[i3 + 2]) * progress) * scale;
+                            // Gentler initial scatter velocity
+                            gravityVelocitiesX[i] = (Math.random() - 0.5) * 0.3;
+                            gravityVelocitiesY[i] = (Math.random() - 0.2) * 0.1;
+                        }
+                        // Disable morph so we directly control positions
+                        material.uniforms.uProgress.value = 0.0;
+                        material.uniforms.uScale.value = 1.0;
+                        material.uniforms.uDriftStrength.value = 0.0;
+                        // Keep particles fully visible during gravity
+                        material.uniforms.uAlphaOverride.value = 0.8;
+                        gravityInitialized = true;
+                    }
+
+                    // Physics step — floatier gravity (reduced by 50%) & smooth cursor deflection
+                    for (let i = 0; i < drawCount; i++) {
+                        const i3 = i * 3;
+                        // 50% reduced gravity acceleration
+                        gravityVelocitiesY[i] -= 0.015;
+                        // Terminal velocity cap
+                        gravityVelocitiesY[i] = Math.max(gravityVelocitiesY[i], -0.9);
+
+                        // Interactive cursor deflection (gentler bounce off mouse)
+                        const mdx = posAttr.array[i3] - mouseWorld.x;
+                        const mdy = posAttr.array[i3 + 1] - mouseWorld.y;
+                        const mdistSq = mdx * mdx + mdy * mdy;
+                        if (mdistSq < 4.0 && mdistSq > 0.0001) {
+                            const mdist = Math.sqrt(mdistSq);
+                            const kick = (2.0 - mdist) * 0.04;
+                            if (kick > 0) {
+                                gravityVelocitiesX[i] += (mdx / mdist) * kick;
+                                gravityVelocitiesY[i] += (mdy / mdist) * kick;
+                            }
+                        }
+
+                        // Apply velocity
+                        posAttr.array[i3]     += gravityVelocitiesX[i];
+                        posAttr.array[i3 + 1] += gravityVelocitiesY[i];
+
+                        // Floor bounce — softer restitution (~0.65 to 0.70)
+                        if (posAttr.array[i3 + 1] < floorY) {
+                            posAttr.array[i3 + 1] = floorY;
+                            gravityVelocitiesY[i] = Math.abs(gravityVelocitiesY[i]) * (0.65 + Math.random() * 0.05);
+                            gravityVelocitiesX[i] = gravityVelocitiesX[i] * 0.94 + (Math.random() - 0.5) * 0.04;
+                        }
+
+                        // Ceiling bounce
+                        if (posAttr.array[i3 + 1] > ceilingY) {
+                            posAttr.array[i3 + 1] = ceilingY;
+                            gravityVelocitiesY[i] = -Math.abs(gravityVelocitiesY[i]) * 0.65;
+                        }
+
+                        // Wall bounce (left)
+                        if (posAttr.array[i3] < wallL) {
+                            posAttr.array[i3] = wallL;
+                            gravityVelocitiesX[i] = Math.abs(gravityVelocitiesX[i]) * (0.65 + Math.random() * 0.05);
+                            gravityVelocitiesY[i] += (Math.random() - 0.3) * 0.02;
+                        }
+                        // Wall bounce (right)
+                        if (posAttr.array[i3] > wallR) {
+                            posAttr.array[i3] = wallR;
+                            gravityVelocitiesX[i] = -Math.abs(gravityVelocitiesX[i]) * (0.65 + Math.random() * 0.05);
+                            gravityVelocitiesY[i] += (Math.random() - 0.3) * 0.02;
+                        }
+                    }
+                    posAttr.needsUpdate = true;
+                } else if (gravityInitialized) {
+                    // Gravity was just turned off — reset
+                    gravityInitialized = false;
+                    material.uniforms.uAlphaOverride.value = 0.0;
+                }
+
                 // Gentle oscillating rotation so text remains front-facing
-                if (!window.isAligning && !reduceMotionRef.current) {
+                if (!window.isAligning && !reduceMotionRef.current && !useGalleryStore.getState().isGravityEnabled) {
                     particles.rotation.y = Math.sin(staticElapsed * 0.15) * 0.2;
                 }
 
@@ -1138,17 +1355,17 @@ export default function ThreeBackground({ isStarted }) {
 
                 // 2. Track Scroll Velocity for Signature Post-Processing
                 if (!reduceMotionRef.current && useGalleryStore.getState().isIntroFinished) {
-                    // Read from Framer Motion's useSpring value directly
                     const velocity = smoothVelocity.get();
-
-                    // Cap the target aberration. A fast scroll is ~3000px/s velocity.
-                    // Map that velocity to a max aberration of 0.1
                     const targetAberration = Math.min(Math.abs(velocity) * 0.00003, 0.1);
-
-                    // The spring already smooths it, so we can just apply it directly
                     postMaterial.uniforms.uOffset.value = targetAberration;
                 } else {
                     postMaterial.uniforms.uOffset.value = 0.0;
+                }
+
+                // Glitch Easter Egg Override
+                if (now < glitchEndTime) {
+                    postMaterial.uniforms.uOffset.value = Math.random() * 0.15;
+                    material.uniforms.uDriftStrength.value = Math.random() * 2.0;
                 }
 
                 // 3. Render full-screen quad to the actual screen
@@ -1375,14 +1592,24 @@ export default function ThreeBackground({ isStarted }) {
                 // particles split to left+right sides to frame the content.
                 // ============================================================
                 const SCROLL_PC = 3000;
+                const intersectingSections = new Set();
+                
                 const sectionObserver = new IntersectionObserver((entries) => {
-                    // Find which section(s) are currently intersecting
-                    let activeSection = null;
+                    // Update the set of currently intersecting sections
                     for (const entry of entries) {
                         if (entry.isIntersecting) {
-                            activeSection = entry.target.id; // 'ai-lab' or 'experience'
-                            break; // Prioritize whichever is intersecting
+                            intersectingSections.add(entry.target.id);
+                        } else {
+                            intersectingSections.delete(entry.target.id);
                         }
+                    }
+
+                    // Determine the active section
+                    let activeSection = null;
+                    if (intersectingSections.has('ai-lab')) {
+                        activeSection = 'ai-lab';
+                    } else if (intersectingSections.has('experience')) {
+                        activeSection = 'experience';
                     }
 
                     if (activeSection && activeSection !== sectionMode) {
@@ -1436,7 +1663,8 @@ export default function ThreeBackground({ isStarted }) {
                         gsap.to(material.uniforms.uColor.value, { r: 0.345, g: 0.651, b: 1.0, duration: 2.5 });
                     }
                 }, {
-                    threshold: 0.15
+                    threshold: 0.05,
+                    rootMargin: "-10% 0px -10% 0px"
                 });
 
                 // Observe the target sections
@@ -1479,6 +1707,11 @@ export default function ThreeBackground({ isStarted }) {
             return () => {
                 unsubscribeGallery();
                 window.removeEventListener('resize', handleResize);
+                window.removeEventListener('keydown', handleKeyDownEasterEggs);
+                window.removeEventListener('mousemove', handleMouseMoveBH);
+                window.removeEventListener('mousedown', handleMouseDownBH);
+                window.removeEventListener('mouseup', handleMouseUpBH);
+                window.removeEventListener('keyup', handleKeyUpBH);
                 if (window.__sectionObserver) {
                     window.__sectionObserver.disconnect();
                     window.__sectionObserver = null;
